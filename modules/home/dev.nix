@@ -99,7 +99,6 @@
     mc
 
     # misc
-    clusterssh
     lynx
     w3m
     wireshark
