@@ -18,6 +18,7 @@
     isNormalUser = true;
     extraGroups  = [ "wheel" "networkmanager" "video" "input" "audio" ];
     shell = pkgs.zsh;
+    hashedPassword = "$y$j9T$unGRRPRFkPO.zG1BFa4ow1$qDdklEp60cw5n8mjg/VwLlF0G6xSYfsgrjrIxAhCFb0";
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOKYoT6GSNhgTxsacAnoRUZk6pXHSjen7PMf/goq2qJB vovin@iKOCMOC14-3.local"
     ];

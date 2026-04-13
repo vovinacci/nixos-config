@@ -26,6 +26,9 @@
   };
 
   security.sudo.wheelNeedsPassword = false;
+  security.sudo.extraConfig = ''
+    Defaults env_keep += "HOME EDITOR VISUAL"
+  '';
 
   programs.zsh.enable = true;
   users.defaultUserShell = pkgs.zsh;
