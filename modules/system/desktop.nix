@@ -1,0 +1,32 @@
+{ config, pkgs, ... }: {
+  programs.sway = {
+    enable = true;
+    wrapperFeatures.gtk = true;
+    extraPackages = with pkgs; [ swaylock swayidle ];
+  };
+
+  xdg.portal = {
+    enable = true;
+    wlr.enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    config.common.default = "wlr";
+  };
+
+  fonts.packages = with pkgs; [
+    nerd-fonts.jetbrains-mono
+    noto-fonts
+    noto-fonts-color-emoji
+  ];
+
+  environment.systemPackages = with pkgs; [
+    waybar wofi foot
+    grim slurp wl-clipboard mako
+    firefox
+  ];
+
+  environment.sessionVariables = {
+    MOZ_ENABLE_WAYLAND          = "1";
+    NIXOS_OZONE_WL              = "1";
+    _JAVA_AWT_WM_NONREPARENTING = "1";
+  };
+}

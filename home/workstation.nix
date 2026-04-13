@@ -1,0 +1,53 @@
+{ config, pkgs, ... }: {
+  home.username      = "vovin";
+  home.homeDirectory = "/home/vovin";
+  home.stateVersion  = "26.05";
+
+  home.persistence."/persist/home/vovin" = {
+    allowOther = false;
+    directories = [
+      "Downloads"
+      "Documents"
+      "Projects"
+      ".ssh"
+      ".gnupg"
+      ".config/sway"
+      ".config/nvim"
+      ".mozilla"
+      ".config/slack"
+      ".local/share/direnv"
+    ];
+    files = [
+      ".zsh_history"
+    ];
+  };
+
+  programs.git = {
+    enable = true;
+    userName  = "vovin";
+    userEmail = "vovin@darkhero";
+    extraConfig = {
+      init.defaultBranch = "main";
+      pull.rebase = true;
+    };
+  };
+
+  programs.zsh = {
+    enable = true;
+    autosuggestion.enable = true;
+    syntaxHighlighting.enable = true;
+    enableCompletion = true;
+    history = {
+      size = 100000;
+      ignoreDups = true;
+      share = true;
+    };
+  };
+
+  home.packages = with pkgs; [
+    slack
+    jetbrains.idea-ultimate
+    tmux
+    direnv
+  ];
+}
