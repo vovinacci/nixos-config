@@ -24,7 +24,6 @@
     watch
     socat
     asciinema
-    ttyrec
     pv
 
     # network tools
