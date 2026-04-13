@@ -17,6 +17,7 @@
       };
       window.border = 2;
       bars = [{ command = "waybar"; }];
+      focus.followMouse = false;
       keybindings = let mod = "Mod4"; in {
         "${mod}+Return"       = "exec foot";
         "${mod}+d"            = "exec wofi --show drun";
@@ -27,6 +28,7 @@
         "${mod}+j"            = "focus down";
         "${mod}+k"            = "focus up";
         "${mod}+l"            = "focus right";
+	"Alt+Tab"             = "focus next";
         "${mod}+Shift+h"      = "move left";
         "${mod}+Shift+j"      = "move down";
         "${mod}+Shift+k"      = "move up";
