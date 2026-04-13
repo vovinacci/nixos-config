@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, lib, ... }: {
   programs.git = {
     enable = true;
     settings = {
@@ -14,17 +14,17 @@
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     enableCompletion = true;
-
     historySubstringSearch.enable = true;
-
     history = {
       save = 100000;
       size = 100000;
       ignoreDups = true;
-      path = "${config.home.homeDirectory}/.zsh_history";
-      share = true;
+      share = lib.mkForce false;
       extended = true;
     };
+    initContent = ''
+      setopt INC_APPEND_HISTORY
+    '';
   };
 
   programs.tmux = {
