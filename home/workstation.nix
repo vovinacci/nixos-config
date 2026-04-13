@@ -50,7 +50,8 @@
 
     files = [
       ".zsh_history"            # history is data, not config
-  ];
+    ];
+  };
 
   programs.zsh = {
     enable = true;
