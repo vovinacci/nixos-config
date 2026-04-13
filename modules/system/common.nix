@@ -15,7 +15,7 @@
 
   # wrap nixos-rebuild to avoid HOME ownership warning
   environment.shellAliases = {
-    nixos-rebuild = "sudo HOME=/root /run/current-system/sw/bin/nixos-rebuild";
+    nixos-rebuild = "sudo env HOME=/root /run/current-system/sw/bin/nixos-rebuild";
   };
 
   environment.systemPackages = with pkgs; [
