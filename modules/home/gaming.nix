@@ -16,7 +16,4 @@
     innoextract      # extract GOG installers
     winetricks
   ];
-
-  # steam needs this
-  hardware.steam-hardware.enable = true;
 }

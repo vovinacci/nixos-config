@@ -1,4 +1,6 @@
 { config, pkgs, ... }: {
+  hardware.steam-hardware.enable = true;
+
   programs.sway = {
     enable = true;
     wrapperFeatures.gtk = true;
