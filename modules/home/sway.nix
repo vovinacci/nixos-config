@@ -1,6 +1,11 @@
 { config, pkgs, ... }: {
+  home.packages = [ pkgs.swayr ];
+
   wayland.windowManager.sway = {
     enable = true;
+    startup = [
+      { command = "${pkgs.swayr}/bin/swayrd"; }
+    ];
     config = {
       modifier = "Mod4";
       terminal = "foot";
@@ -28,7 +33,8 @@
         "${mod}+j"            = "focus down";
         "${mod}+k"            = "focus up";
         "${mod}+l"            = "focus right";
-	"Alt+Tab"             = "focus next";
+	"Alt+Tab"             = "exec ${pkgs.swayr}/bin/swayr switch-to-urgent-or-lru-window";
+        "Alt+Shift+Tab"       = "exec ${pkgs.swayr}/bin/swayr switch-window";
         "${mod}+Shift+h"      = "move left";
         "${mod}+Shift+j"      = "move down";
         "${mod}+Shift+k"      = "move up";
