@@ -4,6 +4,7 @@
     ../modules/system/desktop.nix
     ../modules/system/docker.nix
     ../modules/system/gpu.nix
+    ../modules/system/input.nix
     ../modules/system/networking.nix
     ../modules/system/bluetooth.nix
   ];
