@@ -6,6 +6,6 @@
     yt-dlp
     imagemagick
     calibre
-    transmission-gtk
+    transmission_4-gtk
   ];
 }
