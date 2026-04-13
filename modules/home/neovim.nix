@@ -8,8 +8,8 @@
       # LSP servers
       lua-language-server
       nil
-      nodePackages.typescript-language-server
-      nodePackages.vscode-langservers-extracted
+      typescript-language-server
+      vscode-langservers-extracted
       rust-analyzer
       gopls
       pyright

@@ -73,7 +73,7 @@
 
     # linting
     golangci-lint
-    nodePackages.eslint
+    eslint
     openapi-generator-cli
 
     # languages
