@@ -15,7 +15,7 @@
           scale = "1.5";
         };
       };
-      gaps = { inner = 6; outer = 4; };
+      gaps = { inner = 2; outer = 2; };
       window.border = 2;
       bars = [{ command = "waybar"; }];
       keybindings = let mod = "Mod4"; in {
