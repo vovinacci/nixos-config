@@ -74,7 +74,7 @@
     };
     extraConfig = ''
       output * bg #1a1a2e solid_color
-      exec ${config.home.profileDirectory}/bin/swayrd
+      exec ${pkgs.swayr}/bin/swayrd
     '';
   };
 }
