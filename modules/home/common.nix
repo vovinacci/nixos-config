@@ -3,7 +3,7 @@
     enable = true;
     settings = {
       user.name  = "vovin";
-      user.email = "vovin@dlurk.kiev.ua";
+      user.email = "vovin@lurk.kiev.ua";
       init.defaultBranch = "main";
       pull.rebase = true;
     };

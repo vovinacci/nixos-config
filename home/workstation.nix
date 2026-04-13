@@ -41,16 +41,6 @@
     ];
   };
 
-  programs.git = {
-    enable = true;
-    settings = {
-      user.name  = "Volodymyr Shcherbinin (vovin)";
-      user.email = "vovin@lurk.kiev.ua";
-      init.defaultBranch = "main";
-      pull.rebase = true;
-    };
-  };
-
   programs.zsh = {
     enable = true;
     autosuggestion.enable = true;
