@@ -77,6 +77,10 @@
     };
     extraConfig = ''
       output * bg #1a1a2e solid_color
+      exec ${pkgs.swayr}/bin/swayrd
+      #for_window [app_id="slack"] floating enable
+      exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
+      exec systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
     '';
   };
 }

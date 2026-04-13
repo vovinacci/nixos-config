@@ -7,15 +7,18 @@
     extraPackages = with pkgs; [ swaylock swayidle ];
   };
 
-  # screen share support
   xdg.portal = {
     enable = true;
     wlr.enable = true;
-    extraPortals = [
-      pkgs.xdg-desktop-portal-gtk
-      pkgs.xdg-desktop-portal-wlr
-    ];
-    config.common.default = "wlr";
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    config = {
+      common.default = "*";
+      sway = {
+        default = [ "wlr" "gtk" ];
+        "org.freedesktop.impl.portal.ScreenCast" = [ "wlr" ];
+        "org.freedesktop.impl.portal.Screenshot" = [ "wlr" ];
+      };
+    };
   };
 
   # pipewire screen capture for WebRTC
