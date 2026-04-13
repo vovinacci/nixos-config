@@ -14,10 +14,14 @@
     systemd-boot.enable = true;
   };
 
+
   boot.kernelPackages = pkgs.linuxPackages_zen;
+  boot.kernelParams = [ 
+    "rootdelay=20"
+    "usbcore.autosuspend=-1"
+  ];
   boot.supportedFilesystems = [ "btrfs" ];
   boot.initrd.supportedFilesystems = [ "btrfs" ];
-  boot.kernelParams = [ "rootdelay=5" ];
 
   system.stateVersion = "26.05";
 }
