@@ -4,6 +4,10 @@
     openra
     fheroes2
 
+    # GOG / Epic launcher
+    heroic
+    lutris
+
     # steam + proton for broader library
     steam
     protonup-qt      # manage proton versions
