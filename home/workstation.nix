@@ -54,18 +54,6 @@
     ];
   };
 
-  programs.zsh = {
-    enable = true;
-    autosuggestion.enable = true;
-    syntaxHighlighting.enable = true;
-    enableCompletion = true;
-    history = {
-      size = 100000;
-      ignoreDups = true;
-      share = true;
-    };
-  };
-
   home.packages = with pkgs; [
     jetbrains.idea
   ];

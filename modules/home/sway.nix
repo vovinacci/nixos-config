@@ -5,14 +5,19 @@
       modifier = "Mod4";
       terminal = "foot";
       menu     = "wofi --show drun";
-
+      fonts = {
+        names = [ "JetBrainsMono Nerd Font" ];
+        size  = 11.0;
+      };
       output = {
         "DP-2" = {
-          mode    = "3840x2160@143.963Hz";
-          scale   = "1.5";
+          mode  = "3840x2160@143.963Hz";
+          scale = "1.5";
         };
       };
-
+      gaps = { inner = 6; outer = 4; };
+      window.border = 2;
+      bars = [{ command = "waybar"; }];
       keybindings = let mod = "Mod4"; in {
         "${mod}+Return"       = "exec foot";
         "${mod}+d"            = "exec wofi --show drun";
@@ -31,22 +36,40 @@
         "${mod}+w"            = "layout tabbed";
         "${mod}+e"            = "layout toggle split";
         "${mod}+f"            = "fullscreen toggle";
+        "${mod}+r"            = "mode resize";
+        "${mod}+minus"        = "scratchpad show";
+        "${mod}+Shift+minus"  = "move scratchpad";
+        "${mod}+space"        = "focus mode_toggle";
+        "${mod}+Shift+space"  = "floating toggle";
         "${mod}+1"            = "workspace number 1";
         "${mod}+2"            = "workspace number 2";
         "${mod}+3"            = "workspace number 3";
         "${mod}+4"            = "workspace number 4";
         "${mod}+5"            = "workspace number 5";
+        "${mod}+6"            = "workspace number 6";
+        "${mod}+7"            = "workspace number 7";
+        "${mod}+8"            = "workspace number 8";
+        "${mod}+9"            = "workspace number 9";
+        "${mod}+0"            = "workspace number 10";
         "${mod}+Shift+1"      = "move container to workspace number 1";
         "${mod}+Shift+2"      = "move container to workspace number 2";
         "${mod}+Shift+3"      = "move container to workspace number 3";
         "${mod}+Shift+4"      = "move container to workspace number 4";
         "${mod}+Shift+5"      = "move container to workspace number 5";
+        "${mod}+Shift+6"      = "move container to workspace number 6";
+        "${mod}+Shift+7"      = "move container to workspace number 7";
+        "${mod}+Shift+8"      = "move container to workspace number 8";
+        "${mod}+Shift+9"      = "move container to workspace number 9";
+        "${mod}+Shift+0"      = "move container to workspace number 10";
         "Print"               = "exec grim -g \"$(slurp)\" - | wl-copy";
+        "--locked XF86AudioMute"        = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
+        "--locked XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -5%";
+        "--locked XF86AudioRaiseVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ +5%";
+        "--locked XF86AudioMicMute"     = "exec pactl set-source-mute @DEFAULT_SOURCE@ toggle";
       };
-
-      bars = [{ command = "waybar"; }];
-      gaps = { inner = 6; outer = 4; };
-      window.border = 2;
     };
+    extraConfig = ''
+      output * bg #1a1a2e solid_color
+    '';
   };
 }
