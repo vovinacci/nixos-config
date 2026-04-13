@@ -5,6 +5,7 @@
       "/etc/nixos"
       "/etc/NetworkManager/system-connections"
       "/var/lib/NetworkManager"
+      "/var/lib/docker"
       "/var/lib/nixos"
       "/var/lib/bluetooth"
       "/var/log"

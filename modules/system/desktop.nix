@@ -5,11 +5,24 @@
     extraPackages = with pkgs; [ swaylock swayidle ];
   };
 
+  # screen share support
   xdg.portal = {
     enable = true;
     wlr.enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+    extraPortals = [
+      pkgs.xdg-desktop-portal-gtk
+      pkgs.xdg-desktop-portal-wlr
+    ];
     config.common.default = "wlr";
+  };
+
+  # pipewire screen capture for WebRTC
+  services.pipewire.extraConfig.pipewire = {
+    "10-screencast" = {
+      "stream.properties" = {
+        "node.latency" = "1024/48000";
+      };
+    };
   };
 
   fonts.packages = with pkgs; [

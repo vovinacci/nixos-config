@@ -1,4 +1,17 @@
 { config, pkgs, ... }: {
+  imports = [
+    ../modules/home/common.nix
+    ../modules/home/neovim.nix
+    ../modules/home/sway.nix
+    ../modules/home/foot.nix
+    ../modules/home/firefox.nix
+    ../modules/home/dev.nix
+    ../modules/home/fonts.nix
+    ../modules/home/media.nix
+    ../modules/home/apps.nix
+    ../modules/home/gaming.nix
+  ];
+
   home.username      = "vovin";
   home.homeDirectory = "/home/vovin";
   home.stateVersion  = "26.05";
@@ -10,12 +23,18 @@
       "src"
       ".ssh"
       ".gnupg"
-      ".config/git"
       ".config/sway"
       ".config/nvim"
-      ".mozilla"
+      ".config/git"
       ".config/slack"
+      ".config/Signal"
+      ".config/spotify"
+      ".config/teams-for-linux"
+      ".config/zoom"
+      ".mozilla"
       ".local/share/direnv"
+      ".local/share/Steam"
+      ".steam"
     ];
     files = [
       ".zsh_history"
@@ -45,9 +64,6 @@
   };
 
   home.packages = with pkgs; [
-    slack
     jetbrains.idea
-    tmux
-    direnv
   ];
 }

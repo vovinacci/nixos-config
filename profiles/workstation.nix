@@ -2,6 +2,7 @@
   imports = [
     ../modules/system/audio.nix
     ../modules/system/desktop.nix
+    ../modules/system/docker.nix
     ../modules/system/gpu.nix
     ../modules/system/networking.nix
     ../modules/system/bluetooth.nix
@@ -16,7 +17,7 @@
 
   users.users.vovin = {
     isNormalUser = true;
-    extraGroups  = [ "wheel" "networkmanager" "video" "input" "audio" ];
+    extraGroups  = [ "wheel" "networkmanager" "video" "input" "audio" "docker" ];
     shell = pkgs.zsh;
     hashedPassword = "$y$j9T$unGRRPRFkPO.zG1BFa4ow1$qDdklEp60cw5n8mjg/VwLlF0G6xSYfsgrjrIxAhCFb0";
     openssh.authorizedKeys.keys = [
