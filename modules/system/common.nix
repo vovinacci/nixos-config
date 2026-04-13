@@ -13,6 +13,11 @@
 
   nixpkgs.config.allowUnfree = true;
 
+  # wrap nixos-rebuild to avoid HOME ownership warning
+  environment.shellAliases = {
+    nixos-rebuild = "sudo HOME=/root nixos-rebuild";
+  };
+
   environment.systemPackages = with pkgs; [
     git curl wget neovim
     ripgrep fd bat eza fzf htop
