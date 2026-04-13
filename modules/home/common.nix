@@ -22,8 +22,10 @@
       share = lib.mkForce false;
       extended = true;
     };
-    initContent = ''
+    initContent = lib.mkAfter ''
+      setopt APPEND_HISTORY
       setopt INC_APPEND_HISTORY
+      unsetopt NO_APPEND_HISTORY
     '';
   };
 
