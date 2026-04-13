@@ -5,6 +5,9 @@
     enable = true;
     config = {
       modifier = "Mod4";
+      startup = [
+      { command = "${pkgs.swayr}/bin/swayrd"; }
+      ];
       terminal = "foot";
       menu     = "wofi --show drun";
       fonts = {
@@ -74,7 +77,6 @@
     };
     extraConfig = ''
       output * bg #1a1a2e solid_color
-      exec ${pkgs.swayr}/bin/swayrd
     '';
   };
 }
