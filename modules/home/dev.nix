@@ -88,7 +88,18 @@
     dive
     lazydocker
 
+    # database
+    pgcli
+
+    # ai cli tools
+    claude-code
+    gemini-cli
+
+    # file manager
+    mc
+
     # misc
+    clusterssh
     lynx
     w3m
     wireshark
