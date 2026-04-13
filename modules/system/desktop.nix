@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, lib, ... }: {
   hardware.steam-hardware.enable = true;
 
   programs.sway = {
@@ -13,7 +13,7 @@
     extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
     config = {
       sway = {
-        default = [ "wlr" "gtk" ];
+        default = lib.mkForce [ "wlr" "gtk" ];
         "org.freedesktop.impl.portal.ScreenCast" = [ "wlr" ];
         "org.freedesktop.impl.portal.Screenshot" = [ "wlr" ];
       };
