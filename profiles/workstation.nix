@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, pkgs-stable, ... }: {
   imports = [
     ../modules/system/audio.nix
     ../modules/system/desktop.nix
@@ -13,6 +13,7 @@
     useGlobalPkgs   = true;
     useUserPackages = true;
     backupFileExtension = "bak";
+    extraSpecialArgs = { inherit pkgs-stable; };
     users.vovin = import ../home/workstation.nix;
   };
 

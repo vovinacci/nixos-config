@@ -1,5 +1,7 @@
-{ config, pkgs, ... }: {
-  home.packages = with pkgs; [
+{ config, pkgs, pkgs-stable, ... }: {
+  home.packages = [
+    pkgs-stable.openapi-generator-cli
+  ] ++ (with pkgs; [
     # github
     gh
     git-lfs
@@ -74,7 +76,6 @@
     # linting
     golangci-lint
     eslint
-    openapi-generator-cli
 
     # languages
     go

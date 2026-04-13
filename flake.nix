@@ -3,15 +3,14 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-25.05";
 
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    impermanence = {
-      url = "github:nix-community/impermanence";
-    };
+    impermanence.url = "github:nix-community/impermanence";
 
     sops-nix = {
       url = "github:mic92/sops-nix";
@@ -22,6 +21,7 @@
   outputs = {
     self,
     nixpkgs,
+    nixpkgs-stable,
     home-manager,
     impermanence,
     sops-nix,
@@ -31,7 +31,10 @@
     mkSystem = { system, hostname, profiles ? [] }:
       nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit impermanence sops-nix; };
+        specialArgs = {
+          inherit impermanence sops-nix;
+          pkgs-stable = nixpkgs-stable.legacyPackages.${system};
+        };
         modules = [
           ./hosts/${hostname}/default.nix
           ./modules/system/common.nix
