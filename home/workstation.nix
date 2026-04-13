@@ -36,6 +36,7 @@
       ".config/zoom"            # zoom state
       ".config/teams-for-linux" # teams
       ".config/mc"              # your personal mc tweaks
+      ".local/share/mc"
 
       # game data
       ".local/share/Steam"
