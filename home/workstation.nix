@@ -7,7 +7,7 @@
     directories = [
       "Downloads"
       "Documents"
-      "Projects"
+      "src"
       ".ssh"
       ".gnupg"
       ".config/sway"
