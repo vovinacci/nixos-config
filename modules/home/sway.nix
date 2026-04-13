@@ -33,8 +33,8 @@
         "${mod}+j"            = "focus down";
         "${mod}+k"            = "focus up";
         "${mod}+l"            = "focus right";
-	"Alt+Tab"             = "exec ${pkgs.swayr}/bin/swayr switch-to-urgent-or-lru-window";
-        "Alt+Shift+Tab"       = "exec ${pkgs.swayr}/bin/swayr switch-window";
+	"Alt+Tab"             = "exec ${pkgs.swayr}/bin/swayr next-window current-workspace";
+        "Alt+Shift+Tab"       = "exec ${pkgs.swayr}/bin/swayr prev-window current-workspace";
         "${mod}+Shift+h"      = "move left";
         "${mod}+Shift+j"      = "move down";
         "${mod}+Shift+k"      = "move up";
