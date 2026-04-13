@@ -106,7 +106,7 @@
     postman
     keybase
     winbox
-  ];
+  ]);
 
   programs.direnv = {
     enable = true;
