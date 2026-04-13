@@ -3,7 +3,7 @@
     enable = true;
     settings = {
       main = {
-        font = "JetBrainsMono Nerd Font:size=13";
+        font = "JetBrainsMono Nerd Font:size=11";
         pad  = "12x12";
       };
       mouse = {
