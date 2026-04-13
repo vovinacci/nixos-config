@@ -3,8 +3,7 @@
   home.homeDirectory = "/home/vovin";
   home.stateVersion  = "26.05";
 
-  home.persistence."/persist/home/vovin" = {
-    allowOther = false;
+  home.persistence."/persist" = {
     directories = [
       "Downloads"
       "Documents"
@@ -24,9 +23,9 @@
 
   programs.git = {
     enable = true;
-    userName  = "vovin";
-    userEmail = "vovin@darkhero";
-    extraConfig = {
+    settings = {
+      user.name  = "Volodymyr Shcherbinin (vovin)";
+      user.email = "vovin@lurk.kiev.ua";
       init.defaultBranch = "main";
       pull.rebase = true;
     };
@@ -46,7 +45,7 @@
 
   home.packages = with pkgs; [
     slack
-    jetbrains.idea-ultimate
+    jetbrains.idea
     tmux
     direnv
   ];
