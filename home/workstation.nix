@@ -10,6 +10,7 @@
       "src"
       ".ssh"
       ".gnupg"
+      ".config/git"
       ".config/sway"
       ".config/nvim"
       ".mozilla"
