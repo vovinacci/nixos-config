@@ -23,9 +23,8 @@
       extended = true;
     };
     initContent = lib.mkAfter ''
-      setopt APPEND_HISTORY
       setopt INC_APPEND_HISTORY
-      unsetopt NO_APPEND_HISTORY
+      unsetopt HIST_SAVE_BY_COPY
     '';
   };
 
