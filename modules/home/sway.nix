@@ -3,9 +3,6 @@
 
   wayland.windowManager.sway = {
     enable = true;
-    startup = [
-      { command = "${pkgs.swayr}/bin/swayrd"; }
-    ];
     config = {
       modifier = "Mod4";
       terminal = "foot";
@@ -77,6 +74,7 @@
     };
     extraConfig = ''
       output * bg #1a1a2e solid_color
+      exec ${pkgs.swayr}/bin/swayrd
     '';
   };
 }
