@@ -29,15 +29,6 @@
     };
   };
 
-  services.kmscon = {
-    enable = true;
-    hwRender = false;
-    fonts = [{ name = "JetBrainsMono Nerd Font"; package = pkgs.nerd-fonts.jetbrains-mono; }];
-    extraConfig = ''
-      xkb-layout=us
-    '';
-  };
-
   fonts.packages = with pkgs; [
     nerd-fonts.jetbrains-mono
     noto-fonts
