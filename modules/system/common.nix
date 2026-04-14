@@ -48,6 +48,6 @@
 
   services.xserver.xkb = {
     layout  = "us,ua";
-    options = "grp:ctrl_space_toggle";
+    options = "grp:ctrl_space_toggle,compose:ralt";
   };
 }
