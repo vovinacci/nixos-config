@@ -5,6 +5,12 @@
     enable = true;
     config = {
       modifier = "Mod4";
+      input = {
+        "*" = {
+          xkb_layout  = "us,ua";
+          xkb_options = "grp:ctrl_space_toggle,compose:ralt";
+        };
+      };
       startup = [
         { command = "${pkgs.swayr}/bin/swayrd"; }
         { command = "wl-paste --watch cliphist store"; }
