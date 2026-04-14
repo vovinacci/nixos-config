@@ -12,6 +12,12 @@
       rerere.enabled       = true;
       push.autoSetupRemote = true;
       advice.statusHints   = false;
+      apply.whitespace     = "nowarn";
+      core.autocrlf        = false;
+      merge.verbosity      = 1;
+      push.default         = "upstream";
+      format.pretty        = "%C(blue)%ad%Creset %C(yellow)%h%C(green)%d%Creset %C(blue)%s %C(magenta) [%an]%Creset";
+      log.date             = "format:%d %b %Y %H:%M:%S %z";
       merge.summary        = true;
       branch.autosetupmerge = true;
     };
@@ -39,10 +45,50 @@
     ];
 
     settings.alias = {
+      # log
       lg              = "log --oneline --graph --decorate --all";
+      # diff
+      d               = "diff";
+      dc              = "diff --cached";
+      last            = "diff HEAD^";
+      # add
+      a               = "add";
+      chunkyadd       = "add --patch";
+      # branch
+      b               = "branch -v";
+      # commit
+      c               = "commit -m";
+      ca              = "commit -am";
+      ci              = "commit";
+      amend           = "commit --amend";
+      # checkout
+      co              = "checkout";
+      nb              = "checkout -b";
+      # cherry-pick
+      cp              = "cherry-pick -x";
+      # pull/push
+      pl              = "pull";
+      ps              = "push";
+      # rebase
+      rc              = "rebase --continue";
+      rs              = "rebase --skip";
+      # remote
+      r               = "remote -v";
+      # reset
       undo            = "reset HEAD~1 --mixed";
       uncommit        = "reset --soft HEAD^";
-      last            = "diff HEAD^";
+      unstage         = "reset HEAD";
+      # stash
+      ss              = "stash";
+      sl              = "stash list";
+      sa              = "stash apply";
+      sd              = "stash drop";
+      # status
+      s               = "status";
+      st              = "status";
+      # mergetool
+      mt              = "mergetool";
+      # misc
       filelog         = "log -u";
       t               = "tag -n";
       contributors    = "shortlog --summary --numbered --email";
@@ -50,7 +96,7 @@
       snapshot        = "!git stash save \"snapshot: $(date)\" && git stash apply stash@{0}";
       snapshots       = "!git stash list --grep snapshot";
     };
-    includes = [{ path = "~/.gitconfig.user"; }];
+    includes = [{ path = "~/.config/git/user"; }];
   };
 
   programs.delta = {
@@ -83,6 +129,7 @@
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     enableCompletion = true;
+    completionInit = "autoload -U compinit && compinit -C";
     historySubstringSearch.enable = true;
     history = {
       save        = 100000;
@@ -91,7 +138,11 @@
       extended    = true;
       ignoreSpace = true;
     };
-    sessionVariables.LESS = "-F -g -i -M -R -S -w -X -z-4";
+    sessionVariables = {
+      LESS                       = "-F -g -i -M -R -S -w -X -z-4";
+      CLOUDSDK_PYTHON_SITEPACKAGES = "1";
+      ZSH_DISABLE_COMPFIX        = "true";
+    };
     plugins = [
       {
         name = "powerlevel10k";
@@ -101,6 +152,13 @@
     ];
     initContent = ''
       [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+      # vi-mode: change cursor shape and reset prompt on mode change
+      export VI_MODE_SET_CURSOR=true
+      export VI_MODE_RESET_PROMPT_ON_MODE_CHANGE=true
+
+      # show current kube context on the right
+      export RPS1='$(kubectx_prompt_info)'
 
       # run a command in every immediate subdirectory
       function run_in_subdirs() {
@@ -121,10 +179,12 @@
         [[ -n "$topic" ]] && filter="--topic $topic"
         gh repo list "$org" --limit 1000 $filter --json name -q '.[].name' | \
           while read repo; do
-            gh pr list --repo "$org/$repo" --state open --json title,url,author \
-              --jq '.[] | "\(.title) \(.url) [\(.author.login)]"'
-          done
+            gh pr list --repo "$org/$repo" --state open --json title,url,author
+          done | jq -cr '.[] | select(. != null) | "title: \(.title)\nurl:   \(.url) (\(.author.login))\n"'
       }
+
+      # source local zsh config (private aliases, tokens, work-specific stuff)
+      [[ ! -f ~/.config/zsh/local.zsh ]] || source ~/.config/zsh/local.zsh
     '';
     shellAliases = {
       ls  = "eza --icons";
@@ -138,31 +198,109 @@
       enable  = true;
       theme   = "";
       plugins = [
-        "git"
-        "sudo"
         "docker"
-        "kubectl"
-        "kubectx"
-        "tmux"
         "gh"
+        "git"
         "golang"
         "helm"
-        "terraform"
         "history"
+        "kind"
+        "kubectl"
+        "kubectx"
+        "minikube"
+        "python"
+        "sbt"
+        "sudo"
+        "terraform"
+        "tmux"
         "vi-mode"
       ];
     };
   };
 
   programs.tmux = {
-    enable = true;
-    terminal = "tmux-256color";
-    historyLimit = 50000;
-    keyMode = "vi";
-    prefix = "C-a";
+    enable        = true;
+    terminal      = "tmux-256color";
+    historyLimit  = 50000;
+    keyMode       = "vi";
+    prefix        = "C-a";
+    baseIndex     = 1;
+    mouse         = true;
+    escapeTime    = 0;
+    focusEvents   = true;
+    clock24       = true;
+
+    plugins = with pkgs.tmuxPlugins; [
+      sensible
+      yank
+      fzf-tmux-url
+      tmux-fzf
+      vim-tmux-navigator
+      prefix-highlight
+      {
+        plugin = catppuccin;
+        extraConfig = ''
+          set -g @catppuccin_flavor 'mocha'
+          set -g @catppuccin_status_modules_right "prefix_highlight session date_time"
+          set -g @catppuccin_date_time_text "%d %b %Y %H:%M"
+          set -g @catppuccin_window_status_style "rounded"
+        '';
+      }
+      {
+        plugin = resurrect;
+        extraConfig = ''
+          set -g @resurrect-strategy-nvim 'session'
+        '';
+      }
+      {
+        plugin = continuum;
+        extraConfig = ''
+          set -g @continuum-restore 'on'
+          set -g @continuum-save-interval '10'
+        '';
+      }
+    ];
+
     extraConfig = ''
-      set -g mouse on
-      set -sg escape-time 0
+      # true color
+      set -as terminal-features ",xterm-256color:RGB"
+
+      # status bar at top
+      set -g status-position top
+
+      # window numbering
+      set -g renumber-windows on
+      setw -g pane-base-index 1
+
+      # intuitive splits (open in current path)
+      bind | split-window -h -c "#{pane_current_path}"
+      bind - split-window -v -c "#{pane_current_path}"
+      bind c new-window -c "#{pane_current_path}"
+      unbind '"'
+      unbind %
+
+      # vim-like pane navigation
+      bind h select-pane -L
+      bind j select-pane -D
+      bind k select-pane -U
+      bind l select-pane -R
+
+      # pane resizing
+      bind -r H resize-pane -L 5
+      bind -r J resize-pane -D 5
+      bind -r K resize-pane -U 5
+      bind -r L resize-pane -R 5
+
+      # copy mode vi bindings
+      bind -T copy-mode-vi v   send-keys -X begin-selection
+      bind -T copy-mode-vi C-v send-keys -X rectangle-toggle
+      bind -T copy-mode-vi y   send-keys -X copy-selection-and-cancel
+
+      # send prefix to nested tmux (e.g. remote SSH session)
+      bind a send-prefix
+
+      # reload config
+      bind r source-file ~/.config/tmux/tmux.conf \; display "Config reloaded"
     '';
   };
 

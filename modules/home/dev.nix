@@ -67,11 +67,18 @@
     ko
     stern
     argocd
+    grpcurl
+    kubeconform
 
     # terraform
     terraform
     terraform-docs
     tflint
+
+    # secrets
+    vault
+    sops
+    age
 
     # linting
     golangci-lint
@@ -86,7 +93,7 @@
 
     # docker tools
     dive
-    lazydocker
+    oxker
 
     # database
     pgcli

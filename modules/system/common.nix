@@ -26,6 +26,10 @@
     blueman
   ];
 
+  services.fwupd.enable = true;
+
+  hardware.enableRedistributableFirmware = true;
+
   services.openssh = {
     enable = true;
     settings.PasswordAuthentication = false;
