@@ -20,7 +20,7 @@
 
   environment.systemPackages = with pkgs; [
     git curl wget neovim
-    ripgrep fd bat eza fzf htop
+    ripgrep fd bat bat-extras.batman eza fzf htop btop
     pciutils usbutils
     pulseaudio
     blueman

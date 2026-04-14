@@ -13,6 +13,7 @@
     ../modules/home/gaming.nix
     ../modules/home/mako.nix
     ../modules/home/gtk.nix
+    ../modules/home/wofi.nix
   ];
 
   home.username      = "vovin";

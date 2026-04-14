@@ -1,6 +1,24 @@
 { config, pkgs, ... }: {
   home.packages = with pkgs; [ cliphist swayr ];
 
+  services.swayidle = {
+    enable   = true;
+    timeouts = [
+      { timeout = 300;
+        command = "${pkgs.swaylock}/bin/swaylock -f";
+      }
+      { timeout = 600;
+        command        = "${pkgs.sway}/bin/swaymsg \"output * dpms off\"";
+        resumeCommand  = "${pkgs.sway}/bin/swaymsg \"output * dpms on\"";
+      }
+    ];
+    events = {
+      before-sleep = "${pkgs.swaylock}/bin/swaylock -f";
+      lock         = "${pkgs.swaylock}/bin/swaylock -f";
+    };
+  };
+
+
   wayland.windowManager.sway = {
     enable = true;
     config = {
@@ -19,10 +37,8 @@
         { command = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"; }
         { command = "wlsunset -l 50.4 -L 30.5"; }
         { command = "foot --server"; }
-        { command = let
-            lock = "${pkgs.swaylock}/bin/swaylock -f -c 1a1a2e";
-            msg  = "${pkgs.sway}/bin/swaymsg";
-          in "${pkgs.swayidle}/bin/swayidle -w timeout 300 '${lock}' timeout 600 '${msg} \"output * dpms off\"' resume '${msg} \"output * dpms on\"' before-sleep '${lock}'"; }
+        { command = "udiskie --tray"; }
+        { command = "nm-applet --indicator"; }
       ];
       terminal = "footclient";
       menu     = "wofi --show drun";
@@ -37,6 +53,29 @@
         };
       };
       window.border = 2;
+      colors = {
+        focused = {
+          border      = "#89b4fa";
+          background  = "#89b4fa";
+          text        = "#1a1a2e";
+          indicator   = "#89b4fa";
+          childBorder = "#89b4fa";
+        };
+        focusedInactive = {
+          border      = "#45475a";
+          background  = "#1a1a2e";
+          text        = "#cdd6f4";
+          indicator   = "#45475a";
+          childBorder = "#45475a";
+        };
+        unfocused = {
+          border      = "#313244";
+          background  = "#1a1a2e";
+          text        = "#6c7086";
+          indicator   = "#313244";
+          childBorder = "#313244";
+        };
+      };
       bars = [];
       focus.followMouse = false;
       keybindings = let mod = "Mod4"; in {
@@ -45,7 +84,7 @@
         "${mod}+q"            = "kill";
         "${mod}+Shift+c"      = "reload";
         "${mod}+Shift+e"      = "exec swaymsg exit";
-        "${mod}+ctrl+l"       = "exec swaylock -f -c 1a1a2e";
+        "${mod}+ctrl+l"       = "exec swaylock -f";
         "${mod}+h"            = "focus left";
         "${mod}+j"            = "focus down";
         "${mod}+k"            = "focus up";
@@ -56,6 +95,8 @@
         "${mod}+Shift+j"      = "move down";
         "${mod}+Shift+k"      = "move up";
         "${mod}+Shift+l"      = "move right";
+        "${mod}+backslash"    = "splith";
+        "${mod}+bar"          = "splitv";
         "${mod}+s"            = "layout stacking";
         "${mod}+w"            = "layout tabbed";
         "${mod}+e"            = "layout toggle split";
@@ -86,7 +127,8 @@
         "${mod}+Shift+9"      = "move container to workspace number 9";
         "${mod}+Shift+0"      = "move container to workspace number 10";
         "${mod}+v"            = "exec cliphist list | wofi --dmenu | cliphist decode | wl-copy";
-        "Print"               = "exec grim -g \"$(slurp)\" - | wl-copy";
+        "${mod}+p"            = "exec grim -g \"$(slurp)\" - | wl-copy";
+        "${mod}+Ctrl+p"       = "exec grim -g \"$(slurp)\" ~/Pictures/$(date +%Y%m%d-%H%M%S).png";
         "--locked XF86AudioMute"        = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
         "--locked XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -5%";
         "--locked XF86AudioRaiseVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ +5%";

@@ -43,17 +43,27 @@
     noto-fonts-color-emoji
   ];
 
+  programs.dconf.enable = true;
+
+  services.udisks2.enable = true;
+
   environment.systemPackages = with pkgs; [
     waybar wofi foot
     grim slurp wl-clipboard mako
     firefox
     polkit_gnome
     wlsunset
+    qt6.qtwayland
+    libsForQt5.qt5.qtwayland
+    udiskie
+    networkmanagerapplet
   ];
 
   environment.sessionVariables = {
     MOZ_ENABLE_WAYLAND          = "1";
     NIXOS_OZONE_WL              = "1";
     _JAVA_AWT_WM_NONREPARENTING = "1";
+    QT_QPA_PLATFORM             = "wayland";
+    QT_QPA_PLATFORMTHEME        = "gtk3";
   };
 }

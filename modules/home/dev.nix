@@ -95,6 +95,11 @@
     claude-code
     gemini-cli
 
+    # git tools
+    lazygit
+    delta
+    comma
+
     # file manager
     mc
 
@@ -111,4 +116,16 @@
     enable = true;
     nix-direnv.enable = true;
   };
+
+  programs.ripgrep = {
+    enable = true;
+    arguments = [
+      "--smart-case"
+      "--hidden"
+      "--glob=!.git/*"
+    ];
+  };
+
+  home.sessionVariables.GOPATH = "${config.home.homeDirectory}/go";
+  home.sessionPath = [ "${config.home.homeDirectory}/go/bin" ];
 }

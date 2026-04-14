@@ -8,7 +8,7 @@
 
       modules-left   = [ "sway/workspaces" "sway/mode" "custom/layout" ];
       modules-center = [ "clock" ];
-      modules-right  = [ "idle-inhibitor" "temperature" "cpu" "memory" "bluetooth" "pulseaudio" "network" "sway/language" "tray" "custom/lock" ];
+      modules-right  = [ "idle_inhibitor" "temperature" "cpu" "memory" "bluetooth" "pulseaudio" "network" "sway/language" "tray" "custom/lock" ];
 
       "sway/workspaces" = {
         disable-scroll = true;
@@ -16,7 +16,7 @@
       };
 
       "custom/layout" = {
-        exec     = ''swaymsg -t get_workspaces | ${pkgs.jq}/bin/jq -r '.[] | select(.focused) | .layout' | sed 's/splith/[H]/;s/splitv/[V]/;s/tabbed/[T]/;s/stacking/[S]/'  '';
+        exec     = ''swaymsg -t get_tree | ${pkgs.jq}/bin/jq -r '[recurse(.nodes[]?,.floating_nodes[]?) | select(((.nodes//[]) + (.floating_nodes//[])) | map(select(.focused)) | length > 0)] | last | .layout' | sed 's/splith/[H]/;s/splitv/[V]/;s/tabbed/[T]/;s/stacking/[S]/'  '';
         interval = 1;
         format   = "{}";
         tooltip  = false;
@@ -44,15 +44,15 @@
 
       "custom/lock" = {
         format   = "⏻ ";
-        on-click = "swaylock -f -c 1a1a2e";
+        on-click = "swaylock -f";
         tooltip  = false;
       };
 
-      "idle-inhibitor" = {
-        format = "{icon}";
+      "idle_inhibitor" = {
+        format = "idle: {icon}";
         format-icons = {
-          activated   = "󰒳";
-          deactivated = "󰒲";
+          activated   = " ";
+          deactivated = " ";
         };
       };
 
