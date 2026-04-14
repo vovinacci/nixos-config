@@ -1,12 +1,13 @@
 { config, pkgs, ... }: {
-  home.packages = [ pkgs.swayr ];
+  home.packages = with pkgs; [ cliphist swayr ];
 
   wayland.windowManager.sway = {
     enable = true;
     config = {
       modifier = "Mod4";
       startup = [
-      { command = "${pkgs.swayr}/bin/swayrd"; }
+        { command = "${pkgs.swayr}/bin/swayrd"; }
+        { command = "wl-paste --watch cliphist store"; }
       ];
       terminal = "foot";
       menu     = "wofi --show drun";
@@ -68,6 +69,7 @@
         "${mod}+Shift+8"      = "move container to workspace number 8";
         "${mod}+Shift+9"      = "move container to workspace number 9";
         "${mod}+Shift+0"      = "move container to workspace number 10";
+        "${mod}+v"            = "exec cliphist list | wofi --dmenu | cliphist decode | wl-copy";
         "Print"               = "exec grim -g \"$(slurp)\" - | wl-copy";
         "--locked XF86AudioMute"        = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
         "--locked XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -5%";
@@ -77,7 +79,6 @@
     };
     extraConfig = ''
       output * bg #1a1a2e solid_color
-      exec ${pkgs.swayr}/bin/swayrd
       #for_window [app_id="slack"] floating enable
       exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
       exec systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
