@@ -23,7 +23,7 @@
 
   users.users.vovin = {
     isNormalUser = true;
-    extraGroups  = [ "wheel" "networkmanager" "video" "input" "audio" "docker" ];
+    extraGroups  = [ "wheel" "networkmanager" "video" "input" "audio" "docker" "cdrom" ];
     shell = pkgs.zsh;
     hashedPasswordFile = config.sops.secrets.user_password_hash.path;
     openssh.authorizedKeys.keys = [

@@ -5,7 +5,7 @@
     enable   = true;
     timeouts = [
       { timeout = 300;
-        command = "${pkgs.swaylock}/bin/swaylock -f";
+        command = "${pkgs.procps}/bin/pgrep -x swaylock || ${pkgs.swaylock}/bin/swaylock -f";
       }
       { timeout = 600;
         command        = "${pkgs.sway}/bin/swaymsg \"output * dpms off\"";
@@ -13,8 +13,8 @@
       }
     ];
     events = {
-      before-sleep = "${pkgs.swaylock}/bin/swaylock -f";
-      lock         = "${pkgs.swaylock}/bin/swaylock -f";
+      before-sleep = "${pkgs.procps}/bin/pgrep -x swaylock || ${pkgs.swaylock}/bin/swaylock -f";
+      lock         = "${pkgs.procps}/bin/pgrep -x swaylock || ${pkgs.swaylock}/bin/swaylock -f";
     };
   };
 
@@ -84,7 +84,7 @@
         "${mod}+q"            = "kill";
         "${mod}+Shift+c"      = "reload";
         "${mod}+Shift+e"      = "exec swaymsg exit";
-        "${mod}+ctrl+l"       = "exec swaylock -f";
+        "${mod}+ctrl+l"       = "exec loginctl lock-session";
         "${mod}+h"            = "focus left";
         "${mod}+j"            = "focus down";
         "${mod}+k"            = "focus up";
@@ -133,9 +133,18 @@
         "--locked XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -5%";
         "--locked XF86AudioRaiseVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ +5%";
         "--locked XF86AudioMicMute"     = "exec pactl set-source-mute @DEFAULT_SOURCE@ toggle";
+        "--locked XF86AudioPlay"        = "exec ${pkgs.playerctl}/bin/playerctl play-pause";
+        "--locked XF86AudioNext"        = "exec ${pkgs.playerctl}/bin/playerctl next";
+        "--locked XF86AudioPrev"        = "exec ${pkgs.playerctl}/bin/playerctl previous";
       };
     };
     extraConfig = ''
+      for_window [app_id="udiskie"] floating enable
+      for_window [app_id="Slack" title="^Huddle:"] floating enable
+      for_window [app_id=".blueman-manager-wrapped"] floating enable
+      for_window [app_id="pavucontrol"] floating enable
+      for_window [app_id="nm-connection-editor"] floating enable
+      for_window [class="jetbrains-idea" title="Welcome to IntelliJ IDEA"] floating enable
       output * bg #1a1a2e solid_color
       #for_window [app_id="slack"] floating enable
       exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway

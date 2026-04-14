@@ -16,6 +16,8 @@
 
 
   boot.kernelPackages = pkgs.linuxPackages_zen;
+  boot.extraModulePackages = [ config.boot.kernelPackages.vhba ];
+  boot.kernelModules = [ "vhba" ];
   boot.kernelParams = [ 
     "rootdelay=20"
     "usbcore.autosuspend=-1"
@@ -25,7 +27,11 @@
 
   sops = {
     defaultSopsFile = ../../secrets/secrets.sops.yaml;
-    age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+    # SSH key bind mount from impermanence happens after neededForUsers secrets run.
+    # Use a dedicated age key on /persist (mounted in stage-1, always available).
+    age.sshKeyPaths = [];
+    age.keyFile = "/persist/var/lib/sops-nix/key.txt";
+    age.generateKey = false;
   };
 
   system.stateVersion = "26.05";

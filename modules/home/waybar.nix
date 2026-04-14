@@ -6,13 +6,22 @@
       height  = 32;
       spacing = 8;
 
-      modules-left   = [ "sway/workspaces" "sway/mode" "custom/layout" ];
+      modules-left   = [ "sway/workspaces" "sway/mode" "custom/layout" "mpris" ];
       modules-center = [ "clock" ];
       modules-right  = [ "privacy" "idle_inhibitor" "disk" "temperature" "cpu" "memory" "bluetooth" "pulseaudio" "network" "sway/language" "tray" "custom/lock" ];
 
       "sway/workspaces" = {
         disable-scroll = true;
         all-outputs    = false;
+      };
+
+      mpris = {
+        format = "{status_icon} {artist} \"{title}\"";
+        status-icons = { playing = "󰓇 "; paused = "⏸"; stopped = "■"; };
+        max-length = 50;
+        on-click = "${pkgs.sway}/bin/swaymsg '[app_id=\"spotify\"] focus'";
+        on-click-middle = "${pkgs.playerctl}/bin/playerctl play-pause";
+        tooltip = false;
       };
 
       "custom/layout" = {
@@ -44,7 +53,7 @@
 
       "custom/lock" = {
         format   = "⏻ ";
-        on-click = "swaylock -f";
+        on-click = "loginctl lock-session";
         tooltip  = false;
       };
 

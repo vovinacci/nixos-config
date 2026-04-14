@@ -115,10 +115,11 @@
   programs.gpg.enable = true;
 
   services.gpg-agent = {
-    enable          = true;
+    enable           = true;
+    enableSshSupport = true;
     pinentry.package = pkgs.pinentry-gnome3;
-    defaultCacheTtl = 28800;
-    maxCacheTtl     = 86400;
+    defaultCacheTtl  = 28800;
+    maxCacheTtl      = 86400;
   };
 
   programs.nix-index = {
@@ -320,7 +321,6 @@
 
   home.file.".ssh/config.d/.keep".text = "";
 
-  services.ssh-agent.enable = true;
 
   programs.fzf = {
     enable = true;

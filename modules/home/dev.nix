@@ -112,6 +112,7 @@
     # git tools
     lazygit
     delta
+    prek
 
     # file manager
     mc

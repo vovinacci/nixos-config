@@ -22,6 +22,7 @@
     git curl wget neovim
     ripgrep fd bat bat-extras.batman eza fzf htop btop
     pciutils usbutils
+    cdemu-client cdemu-daemon
     pulseaudio
     blueman
     yubikey-manager
