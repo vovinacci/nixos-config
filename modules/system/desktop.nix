@@ -23,7 +23,7 @@
   services.greetd = {
     enable = true;
     settings.default_session.command =
-      "${pkgs.greetd.tuigreet}/bin/tuigreet --time --cmd sway";
+      "${pkgs.tuigreet}/bin/tuigreet --time --cmd sway";
   };
 
   # pipewire screen capture for WebRTC
