@@ -41,4 +41,13 @@
 
   time.timeZone = "Europe/Kyiv";
   i18n.defaultLocale = "en_US.UTF-8";
+
+  console = {
+    useXkbConfig = true;
+  };
+
+  services.xserver.xkb = {
+    layout  = "us,ua";
+    options = "grp:ctrl_space_toggle";
+  };
 }
