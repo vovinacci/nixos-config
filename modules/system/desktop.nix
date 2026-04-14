@@ -20,6 +20,12 @@
     };
   };
 
+  services.greetd = {
+    enable = true;
+    settings.default_session.command =
+      "${pkgs.greetd.tuigreet}/bin/tuigreet --time --cmd sway";
+  };
+
   # pipewire screen capture for WebRTC
   services.pipewire.extraConfig.pipewire = {
     "10-screencast" = {
