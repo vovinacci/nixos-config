@@ -32,7 +32,7 @@
   services.kmscon = {
     enable = true;
     hwRender = true;
-    fonts = [{ name = "JetBrainsMono Nerd Font"; size = 11; }];
+    fonts = [{ name = "JetBrainsMono Nerd Font"; package = pkgs.nerd-fonts.jetbrains-mono; }];
     extraConfig = ''
       xkb-layout=us
     '';
