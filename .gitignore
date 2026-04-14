@@ -3,4 +3,5 @@ result-*
 .direnv/
 *.local.nix
 secrets/*.yaml
-!secrets/.sops.yaml
+!secrets/*.sops.yaml
+**/.claude/settings.local.json

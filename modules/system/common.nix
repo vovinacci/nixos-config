@@ -24,9 +24,16 @@
     pciutils usbutils
     pulseaudio
     blueman
+    yubikey-manager
+    yubikey-personalization
+    pcsc-tools
   ];
 
+  programs.nix-ld.enable = true;
+
   services.fwupd.enable = true;
+
+  services.pcscd.enable = true;
 
   hardware.enableRedistributableFirmware = true;
 

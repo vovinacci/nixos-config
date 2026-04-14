@@ -1,0 +1,12 @@
+keys:
+  - &host_darkhero age1yl7nkakz0wlfawk4dvr0chuzp7zyu2hvyy6wxud86v2eg54y7cgs7pwezh
+  - &user_darkhero age18p5x7dlqf285g9jwv0pchvkwqj2ucfkva90r4f7kyz3jfz0xcyeqxem53g
+  - &yubikey_vovin age1yubikey1qvwfugppvzvlwvcmcwfr35vru8gh6607pnemjf0rtvjd5y5xlnsezkr6p4x
+
+creation_rules:
+  - path_regex: secrets/.*\.sops\.yaml$
+    key_groups:
+      - age:
+          - *host_darkhero
+          - *user_darkhero
+          - *yubikey_vovin

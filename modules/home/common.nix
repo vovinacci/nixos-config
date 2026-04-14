@@ -24,6 +24,8 @@
     ignores = [
       # editors
       ".idea/" ".vscode/" "*.swp" "*.swo" ".vim/"
+      # claude code
+      "**/.claude/settings.local.json"
       # direnv
       ".direnv/" ".envrc.local"
       # nix
@@ -120,7 +122,7 @@
   };
 
   programs.nix-index = {
-    enable             = true;
+    enable               = true;
     enableZshIntegration = true;
   };
 
@@ -140,7 +142,8 @@
     };
     sessionVariables = {
       LESS                       = "-F -g -i -M -R -S -w -X -z-4";
-      CLOUDSDK_PYTHON_SITEPACKAGES = "1";
+      CLOUDSDK_PYTHON_SITEPACKAGES              = "1";
+      CLOUDSDK_COMPONENT_MANAGER_DISABLE_UPDATE_CHECK = "true";
       ZSH_DISABLE_COMPFIX        = "true";
     };
     plugins = [
@@ -304,19 +307,18 @@
     '';
   };
 
-  programs.ssh = {
-    enable = true;
-    enableDefaultConfig = false;
-    matchBlocks = {
-      "github.com" = {
-        identityFile = "~/.ssh/id_rsa_vcs";
-        user = "git";
-      };
-      "*" = {
-        addKeysToAgent = "yes";
-      };
-    };
-  };
+  home.file.".ssh/config".text = ''
+    ControlMaster auto
+    ControlPath /tmp/%r@%h:%p
+
+    Host *
+      AddKeysToAgent yes
+      Compression yes
+
+    Include ~/.ssh/config.d/*
+  '';
+
+  home.file.".ssh/config.d/.keep".text = "";
 
   services.ssh-agent.enable = true;
 

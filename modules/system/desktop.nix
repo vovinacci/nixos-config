@@ -43,6 +43,13 @@
     noto-fonts-color-emoji
   ];
 
+  fonts.fontconfig.defaultFonts = {
+    sansSerif = [ "Noto Sans" ];
+    serif      = [ "Noto Serif" ];
+    monospace  = [ "JetBrainsMono Nerd Font" ];
+    emoji      = [ "Noto Color Emoji" ];
+  };
+
   programs.dconf.enable = true;
 
   services.udisks2.enable = true;

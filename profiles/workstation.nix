@@ -1,4 +1,4 @@
-{ config, pkgs, pkgs-stable, ... }: {
+{ config, pkgs, pkgs-stable, nix-index-database, sops-nix, ... }: {
   imports = [
     ../modules/system/audio.nix
     ../modules/system/desktop.nix
@@ -13,7 +13,7 @@
     useGlobalPkgs   = true;
     useUserPackages = true;
     backupFileExtension = "bak";
-    extraSpecialArgs = { inherit pkgs-stable; };
+    extraSpecialArgs = { inherit pkgs-stable nix-index-database sops-nix; };
     users.vovin = import ../home/workstation.nix;
   };
 

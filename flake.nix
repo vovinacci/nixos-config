@@ -12,6 +12,11 @@
 
     impermanence.url = "github:nix-community/impermanence";
 
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     sops-nix = {
       url = "github:mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -24,6 +29,7 @@
     nixpkgs-stable,
     home-manager,
     impermanence,
+    nix-index-database,
     sops-nix,
     ...
   }:
@@ -32,7 +38,7 @@
       nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = {
-          inherit impermanence sops-nix;
+          inherit impermanence sops-nix nix-index-database;
           pkgs-stable = nixpkgs-stable.legacyPackages.${system};
         };
         modules = [
@@ -40,6 +46,7 @@
           ./modules/system/common.nix
           impermanence.nixosModules.impermanence
           home-manager.nixosModules.home-manager
+          sops-nix.nixosModules.sops
         ] ++ profiles;
       };
   in {

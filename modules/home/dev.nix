@@ -53,7 +53,13 @@
     # cloud
     awscli2
     azure-cli
-    google-cloud-sdk
+    (google-cloud-sdk.withExtraComponents (with google-cloud-sdk.components; [
+      gke-gcloud-auth-plugin
+      package-go-module
+      beta
+      terraform-tools
+      pubsub-emulator
+    ]))
     ssm-session-manager-plugin
 
     # kubernetes
@@ -79,6 +85,7 @@
     vault
     sops
     age
+    age-plugin-yubikey
 
     # linting
     golangci-lint
@@ -105,7 +112,6 @@
     # git tools
     lazygit
     delta
-    comma
 
     # file manager
     mc
@@ -134,5 +140,8 @@
   };
 
   home.sessionVariables.GOPATH = "${config.home.homeDirectory}/go";
-  home.sessionPath = [ "${config.home.homeDirectory}/go/bin" ];
+  home.sessionPath = [
+    "${config.home.homeDirectory}/go/bin"
+    "${config.home.homeDirectory}/.local/bin"
+  ];
 }

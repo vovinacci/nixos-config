@@ -1,6 +1,10 @@
 { config, pkgs, ... }: {
   gtk = {
     enable = true;
+    font = {
+      name = "Noto Sans";
+      size = 11;
+    };
     theme = {
       name    = "catppuccin-mocha-blue-standard+default";
       package = pkgs.catppuccin-gtk.override {

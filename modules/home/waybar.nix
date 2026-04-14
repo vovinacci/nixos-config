@@ -8,7 +8,7 @@
 
       modules-left   = [ "sway/workspaces" "sway/mode" "custom/layout" ];
       modules-center = [ "clock" ];
-      modules-right  = [ "idle_inhibitor" "temperature" "cpu" "memory" "bluetooth" "pulseaudio" "network" "sway/language" "tray" "custom/lock" ];
+      modules-right  = [ "privacy" "idle_inhibitor" "disk" "temperature" "cpu" "memory" "bluetooth" "pulseaudio" "network" "sway/language" "tray" "custom/lock" ];
 
       "sway/workspaces" = {
         disable-scroll = true;
@@ -76,6 +76,23 @@
         format   = "⌨ {short}";
         tooltip  = false;
         on-click = "swaymsg input '*' xkb_switch_layout next";
+      };
+
+      disk = {
+        format   = "󰋊 {percentage_used}%";
+        path     = "/persist";
+        interval = 30;
+        tooltip-format = "{used} / {total}";
+      };
+
+      privacy = {
+        icon-spacing = 4;
+        icon-size    = 14;
+        transition-duration = 250;
+        modules = [
+          { type = "screenshare"; tooltip = true; tooltip-icon-size = 24; }
+          { type = "audio-in";   tooltip = true; tooltip-icon-size = 24; }
+        ];
       };
 
       cpu = {

@@ -23,5 +23,10 @@
   boot.supportedFilesystems = [ "btrfs" ];
   boot.initrd.supportedFilesystems = [ "btrfs" ];
 
+  sops = {
+    defaultSopsFile = ../../secrets/secrets.sops.yaml;
+    age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
+  };
+
   system.stateVersion = "26.05";
 }
