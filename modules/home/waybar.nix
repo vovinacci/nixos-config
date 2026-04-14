@@ -1,0 +1,96 @@
+{ config, pkgs, ... }: {
+  programs.waybar = {
+    enable = true;
+    settings.mainBar = {
+      layer   = "top";
+      height  = 32;
+      spacing = 8;
+
+      modules-left   = [ "sway/workspaces" "sway/mode" "custom/layout" ];
+      modules-center = [ "clock" ];
+      modules-right  = [ "idle-inhibitor" "temperature" "cpu" "memory" "bluetooth" "pulseaudio" "network" "sway/language" "tray" "custom/lock" ];
+
+      "sway/workspaces" = {
+        disable-scroll = true;
+        all-outputs    = false;
+      };
+
+      "custom/layout" = {
+        exec     = ''swaymsg -t get_workspaces | ${pkgs.jq}/bin/jq -r '.[] | select(.focused) | .layout' | sed 's/splith/[H]/;s/splitv/[V]/;s/tabbed/[T]/;s/stacking/[S]/'  '';
+        interval = 1;
+        format   = "{}";
+        tooltip  = false;
+      };
+
+      clock = {
+        format     = "{:%a %d %b  %H:%M}";
+        tooltip    = false;
+      };
+
+      pulseaudio = {
+        format        = "{icon} {volume}%";
+        format-muted  = "󰝟";
+        format-icons  = { default = [ "󰕿" "󰖀" "󰕾" ]; };
+        on-click      = "pactl set-sink-mute @DEFAULT_SINK@ toggle";
+      };
+
+      network = {
+        format-ethernet  = "󰈀 {ipaddr}";
+        format-wifi      = "󰤨 {essid}";
+        format-linked    = "󰈀 (no IP)";
+        format-disconnected = "󰤭";
+        tooltip          = false;
+      };
+
+      "custom/lock" = {
+        format   = "⏻ ";
+        on-click = "swaylock -f -c 1a1a2e";
+        tooltip  = false;
+      };
+
+      "idle-inhibitor" = {
+        format = "{icon}";
+        format-icons = {
+          activated   = "󰒳";
+          deactivated = "󰒲";
+        };
+      };
+
+      temperature = {
+        critical-threshold = 85;
+        format        = "󰔏 {temperatureC}°C";
+        format-critical = "󰸁 {temperatureC}°C";
+      };
+
+      bluetooth = {
+        format          = "󰂯 {status}";
+        format-connected = "󰂱 {device_alias}";
+        format-disabled = "";
+        on-click        = "blueman-manager";
+        tooltip-format  = "{controller_alias} · {controller_address}\n{num_connections} connected";
+        tooltip-format-connected = "{device_enumerate}";
+        tooltip-format-enumerate-connected = "{device_alias} · {device_address}";
+      };
+
+      "sway/language" = {
+        format   = "⌨ {short}";
+        tooltip  = false;
+        on-click = "swaymsg input '*' xkb_switch_layout next";
+      };
+
+      cpu = {
+        format   = "󰘚 {usage}%";
+        interval = 5;
+      };
+
+      memory = {
+        format   = "󰍛 {percentage}%";
+        interval = 10;
+      };
+
+      tray = {
+        spacing = 8;
+      };
+    };
+  };
+}

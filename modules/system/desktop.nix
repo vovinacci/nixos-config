@@ -20,6 +20,8 @@
     };
   };
 
+  security.pam.services.swaylock = {};
+
   services.greetd = {
     enable = true;
     settings.default_session.command =
@@ -45,6 +47,8 @@
     waybar wofi foot
     grim slurp wl-clipboard mako
     firefox
+    polkit_gnome
+    wlsunset
   ];
 
   environment.sessionVariables = {

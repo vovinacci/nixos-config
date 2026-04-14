@@ -14,8 +14,17 @@
       startup = [
         { command = "${pkgs.swayr}/bin/swayrd"; }
         { command = "wl-paste --watch cliphist store"; }
+        { command = "waybar"; }
+        { command = "mako"; }
+        { command = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"; }
+        { command = "wlsunset -l 50.4 -L 30.5"; }
+        { command = "foot --server"; }
+        { command = let
+            lock = "${pkgs.swaylock}/bin/swaylock -f -c 1a1a2e";
+            msg  = "${pkgs.sway}/bin/swaymsg";
+          in "${pkgs.swayidle}/bin/swayidle -w timeout 300 '${lock}' timeout 600 '${msg} \"output * dpms off\"' resume '${msg} \"output * dpms on\"' before-sleep '${lock}'"; }
       ];
-      terminal = "foot";
+      terminal = "footclient";
       menu     = "wofi --show drun";
       fonts = {
         names = [ "JetBrainsMono Nerd Font" ];
@@ -28,7 +37,7 @@
         };
       };
       window.border = 2;
-      bars = [{ command = "waybar"; }];
+      bars = [];
       focus.followMouse = false;
       keybindings = let mod = "Mod4"; in {
         "${mod}+Return"       = "exec foot";
@@ -36,6 +45,7 @@
         "${mod}+q"            = "kill";
         "${mod}+Shift+c"      = "reload";
         "${mod}+Shift+e"      = "exec swaymsg exit";
+        "${mod}+ctrl+l"       = "exec swaylock -f -c 1a1a2e";
         "${mod}+h"            = "focus left";
         "${mod}+j"            = "focus down";
         "${mod}+k"            = "focus up";
