@@ -8,7 +8,7 @@
 
       modules-left   = [ "sway/workspaces" "sway/mode" "custom/layout" "mpris" ];
       modules-center = [ "clock" ];
-      modules-right  = [ "privacy" "idle_inhibitor" "disk" "temperature" "cpu" "memory" "bluetooth" "pulseaudio" "network" "sway/language" "tray" "custom/lock" ];
+      modules-right  = [ "privacy" "idle_inhibitor" "disk" "temperature" "cpu" "memory" "bluetooth" "pulseaudio" "network" "sway/language" "tray" "custom/sleep" "custom/lock" ];
 
       "sway/workspaces" = {
         disable-scroll = true;
@@ -49,6 +49,12 @@
         format-linked    = "󰈀 (no IP)";
         format-disconnected = "󰤭";
         tooltip          = false;
+      };
+
+      "custom/sleep" = {
+        format   = "⏾ ";
+        on-click = "systemctl suspend";
+        tooltip  = false;
       };
 
       "custom/lock" = {
