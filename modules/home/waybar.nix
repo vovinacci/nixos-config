@@ -1,12 +1,26 @@
 { config, pkgs, ... }: {
   programs.waybar = {
     enable = true;
+    style = builtins.readFile "${pkgs.waybar}/etc/xdg/waybar/style.css" + ''
+      * {
+        font-size: 16px;
+      }
+      #mode {
+        color: #fab387;
+        padding: 0 8px;
+        font-weight: bold;
+      }
+      #custom-layout-hints {
+        color: #bac2de;
+        font-style: italic;
+      }
+    '';
     settings.mainBar = {
       layer   = "top";
-      height  = 32;
-      spacing = 8;
+      height  = 45;
+      spacing = 15;
 
-      modules-left   = [ "sway/workspaces" "sway/mode" "custom/layout" "mpris" ];
+      modules-left   = [ "sway/workspaces" "sway/mode" "custom/layout" "custom/layout-hints" "mpris" ];
       modules-center = [ "clock" ];
       modules-right  = [ "privacy" "idle_inhibitor" "disk" "temperature" "cpu" "memory" "bluetooth" "pulseaudio" "network" "sway/language" "tray" "custom/sleep" "custom/lock" ];
 
@@ -25,10 +39,17 @@
       };
 
       "custom/layout" = {
-        exec     = ''swaymsg -t get_tree | ${pkgs.jq}/bin/jq -r '[recurse(.nodes[]?,.floating_nodes[]?) | select(((.nodes//[]) + (.floating_nodes//[])) | map(select(.focused)) | length > 0)] | last | .layout' | sed 's/splith/[H]/;s/splitv/[V]/;s/tabbed/[T]/;s/stacking/[S]/'  '';
-        interval = 1;
-        format   = "{}";
-        tooltip  = false;
+        exec    = "layout-info";
+        signal  = 1;
+        format  = "{}";
+        tooltip = false;
+      };
+
+      "custom/layout-hints" = {
+        exec    = "layout-hints";
+        signal  = 2;
+        format  = "{}";
+        tooltip = false;
       };
 
       clock = {
@@ -102,26 +123,24 @@
 
       privacy = {
         icon-spacing = 4;
-        icon-size    = 14;
+        icon-size    = 22;
         transition-duration = 250;
         modules = [
-          { type = "screenshare"; tooltip = true; tooltip-icon-size = 24; }
-          { type = "audio-in";   tooltip = true; tooltip-icon-size = 24; }
+          { type = "screenshare"; tooltip = true; tooltip-icon-size = 40; }
+          { type = "audio-in";    tooltip = true; tooltip-icon-size = 40; }
         ];
       };
 
       cpu = {
-        format   = "󰘚 {usage}%";
-        interval = 5;
+        format = "󰘚 {usage}%";
       };
 
       memory = {
-        format   = "󰍛 {percentage}%";
-        interval = 10;
+        format = "󰍛 {percentage}%";
       };
 
       tray = {
-        spacing = 8;
+        spacing = 15;
       };
     };
   };

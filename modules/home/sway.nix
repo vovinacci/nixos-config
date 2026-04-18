@@ -1,11 +1,75 @@
-{ config, pkgs, ... }: {
-  home.packages = with pkgs; [ cliphist swayr ];
+{ config, pkgs, lib, ... }:
+
+let
+  layoutCycle = pkgs.writeShellScriptBin "layout-cycle" ''
+    current=$(${pkgs.sway}/bin/swaymsg -t get_tree | ${pkgs.jq}/bin/jq -r '
+      [recurse(.nodes[]?, .floating_nodes[]?) |
+        select(((.nodes // []) + (.floating_nodes // [])) |
+          map(select(.focused == true)) | length > 0)
+      ] | last | .layout
+    ')
+    case "$current" in
+      splith)   ${pkgs.sway}/bin/swaymsg layout splitv ;;
+      splitv)   ${pkgs.sway}/bin/swaymsg layout tabbed ;;
+      tabbed)   ${pkgs.sway}/bin/swaymsg layout stacking ;;
+      stacking) ${pkgs.sway}/bin/swaymsg layout splith ;;
+      *)        ${pkgs.sway}/bin/swaymsg layout splith ;;
+    esac
+    ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar
+  '';
+
+  layoutHints = pkgs.writeShellScriptBin "layout-hints" ''
+    mode=$(${pkgs.sway}/bin/swaymsg -t get_binding_state | ${pkgs.jq}/bin/jq -r '.name')
+    if [ "$mode" = "layout" ]; then
+      echo "h H · v V · t tab · s stack · Tab cycle · 1/2/3/4 width · S+1/2/3 height"
+    fi
+  '';
+
+  layoutInfo = pkgs.writeShellScriptBin "layout-info" ''
+    data=$(${pkgs.sway}/bin/swaymsg -t get_tree | ${pkgs.jq}/bin/jq -r '
+      ([recurse(.nodes[]?, .floating_nodes[]?) |
+        select(((.nodes // []) + (.floating_nodes // [])) |
+          map(select(.focused == true)) | length > 0)
+      ] | last) // empty |
+      {l: .layout, pw: .rect.width, ph: .rect.height,
+       cw: (((.nodes // []) + (.floating_nodes // [])) | map(select(.focused == true)) | first | .rect.width),
+       ch: (((.nodes // []) + (.floating_nodes // [])) | map(select(.focused == true)) | first | .rect.height)
+      } | "\(.l) \(.pw) \(.ph) \(.cw) \(.ch)"
+    ' 2>/dev/null)
+    [ -z "$data" ] && exit 0
+
+    read -r layout pw ph cw ch <<< "$data"
+
+    snap() {
+      local v=$1 t=$2
+      [ "$t" -eq 0 ] && echo "?" && return
+      local p=$(( v * 100 / t ))
+      if   [ "$p" -le 29 ]; then echo "1/4"
+      elif [ "$p" -le 42 ]; then echo "1/3"
+      elif [ "$p" -le 57 ]; then echo "1/2"
+      elif [ "$p" -le 70 ]; then echo "2/3"
+      elif [ "$p" -le 84 ]; then echo "3/4"
+      else echo "1/1"
+      fi
+    }
+
+    case "$layout" in
+      splith)   echo "⊞ H  $(snap "$cw" "$pw")" ;;
+      splitv)   echo "⊟ V  $(snap "$ch" "$ph")" ;;
+      tabbed)   echo "⊠ T" ;;
+      stacking) echo "☰ S" ;;
+      *)        echo "? $layout" ;;
+    esac
+  '';
+in
+{
+  home.packages = with pkgs; [ cliphist swayr layoutCycle layoutInfo layoutHints ];
 
   services.swayidle = {
     enable   = true;
     timeouts = [
       { timeout = 300;
-        command = "${pkgs.procps}/bin/pgrep -x swaylock || ${pkgs.swaylock}/bin/swaylock -f";
+         command = "${pkgs.procps}/bin/pgrep -x swaylock || ${pkgs.swaylock}/bin/swaylock -f";
       }
       { timeout = 600;
         command        = "${pkgs.sway}/bin/swaymsg \"output * dpms off\"";
@@ -44,12 +108,12 @@
       menu     = "wofi --show drun";
       fonts = {
         names = [ "JetBrainsMono Nerd Font" ];
-        size  = 11.0;
+        size  = 12.0;
       };
       output = {
         "DP-2" = {
           mode  = "3840x2160@143.963Hz";
-          scale = "1.5";
+          scale = "1.0";
         };
       };
       window.border = 2;
@@ -78,6 +142,24 @@
       };
       bars = [];
       focus.followMouse = false;
+      modes = lib.mkOptionDefault {
+        layout = {
+          "h"         = "layout splith; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
+          "v"         = "layout splitv; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
+          "t"         = "layout tabbed; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
+          "s"         = "layout stacking; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
+          "Tab"       = "exec ${layoutCycle}/bin/layout-cycle";
+          "1"         = "resize set width 33 ppt; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
+          "2"         = "resize set width 50 ppt; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
+          "3"         = "resize set width 67 ppt; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
+          "4"         = "resize set width 100 ppt; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
+          "Shift+1"   = "resize set height 33 ppt; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
+          "Shift+2"   = "resize set height 50 ppt; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
+          "Shift+3"   = "resize set height 67 ppt; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
+          "Escape"    = "mode default; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+2 waybar";
+          "Return"    = "mode default; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+2 waybar";
+        };
+      };
       keybindings = let mod = "Mod4"; in {
         "${mod}+Return"       = "exec foot";
         "${mod}+d"            = "exec wofi --show drun";
@@ -89,17 +171,14 @@
         "${mod}+j"            = "focus down";
         "${mod}+k"            = "focus up";
         "${mod}+l"            = "focus right";
-	"Alt+Tab"             = "exec ${pkgs.swayr}/bin/swayr next-window current-workspace";
+        "Alt+Tab"             = "exec ${pkgs.swayr}/bin/swayr next-window current-workspace";
         "Alt+Shift+Tab"       = "exec ${pkgs.swayr}/bin/swayr prev-window current-workspace";
         "${mod}+Shift+h"      = "move left";
         "${mod}+Shift+j"      = "move down";
         "${mod}+Shift+k"      = "move up";
         "${mod}+Shift+l"      = "move right";
-        "${mod}+backslash"    = "splith";
-        "${mod}+bar"          = "splitv";
-        "${mod}+s"            = "layout stacking";
-        "${mod}+w"            = "layout tabbed";
-        "${mod}+e"            = "layout toggle split";
+        "${mod}+a"            = "mode layout; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+2 waybar";
+        "${mod}+Tab"          = "exec ${layoutCycle}/bin/layout-cycle";
         "${mod}+f"            = "fullscreen toggle";
         "${mod}+r"            = "mode resize";
         "${mod}+minus"        = "scratchpad show";
@@ -146,7 +225,6 @@
       for_window [app_id="nm-connection-editor"] floating enable
       for_window [class="jetbrains-idea" title="Welcome to IntelliJ IDEA"] floating enable
       output * bg #1a1a2e solid_color
-      #for_window [app_id="slack"] floating enable
       exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
       exec systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
     '';

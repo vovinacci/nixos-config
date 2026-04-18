@@ -3,7 +3,7 @@
     enable = true;
     font = {
       name = "Noto Sans";
-      size = 11;
+      size = 12;
     };
     theme = {
       name    = "catppuccin-mocha-blue-standard+default";
