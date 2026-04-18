@@ -7,6 +7,7 @@
     git-lfs
 
     # shell tools
+    gnumake
     shellcheck
     shfmt
     hadolint

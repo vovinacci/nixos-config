@@ -4,6 +4,7 @@ let
   layoutCycle = pkgs.writeShellScriptBin "layout-cycle" ''
     current=$(${pkgs.sway}/bin/swaymsg -t get_tree | ${pkgs.jq}/bin/jq -r '
       [recurse(.nodes[]?, .floating_nodes[]?) |
+        select(.layout | IN("splith", "splitv", "tabbed", "stacking")) |
         select(((.nodes // []) + (.floating_nodes // [])) |
           map(select(.focused == true)) | length > 0)
       ] | last | .layout
@@ -28,6 +29,7 @@ let
   layoutInfo = pkgs.writeShellScriptBin "layout-info" ''
     data=$(${pkgs.sway}/bin/swaymsg -t get_tree | ${pkgs.jq}/bin/jq -r '
       ([recurse(.nodes[]?, .floating_nodes[]?) |
+        select(.layout | IN("splith", "splitv", "tabbed", "stacking")) |
         select(((.nodes // []) + (.floating_nodes // [])) |
           map(select(.focused == true)) | length > 0)
       ] | last) // empty |

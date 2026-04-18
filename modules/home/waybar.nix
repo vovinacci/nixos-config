@@ -39,10 +39,11 @@
       };
 
       "custom/layout" = {
-        exec    = "layout-info";
-        signal  = 1;
-        format  = "{}";
-        tooltip = false;
+        exec     = "layout-info";
+        signal   = 1;
+        interval = 5;
+        format   = "{}";
+        tooltip  = false;
       };
 
       "custom/layout-hints" = {
@@ -74,13 +75,13 @@
 
       "custom/sleep" = {
         format   = "⏾ ";
-        on-click = "systemctl suspend";
+        on-click = "setsid bash -c 'sleep 0.2; systemctl suspend'";
         tooltip  = false;
       };
 
       "custom/lock" = {
         format   = "⏻ ";
-        on-click = "loginctl lock-session";
+        on-click = "setsid bash -c 'sleep 0.2; loginctl lock-session'";
         tooltip  = false;
       };
 
