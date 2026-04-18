@@ -35,6 +35,7 @@
   services.fwupd.enable = true;
 
   services.pcscd.enable = true;
+  systemd.services.pcscd.restartIfChanged = false;
 
   hardware.enableRedistributableFirmware = true;
 

@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, lib, ... }: {
   programs.git = {
     enable = true;
     settings = {
@@ -121,6 +121,10 @@
     defaultCacheTtl  = 28800;
     maxCacheTtl      = 86400;
   };
+
+  home.activation.reloadGpgAgent = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    ${pkgs.gnupg}/bin/gpg-connect-agent reloadagent /bye > /dev/null 2>&1 || true
+  '';
 
   programs.nix-index = {
     enable               = true;
