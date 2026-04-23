@@ -26,6 +26,17 @@ let
     fi
   '';
 
+  scratchpadPick = pkgs.writeShellScriptBin "scratchpad-pick" ''
+    selected=$(${pkgs.sway}/bin/swaymsg -t get_tree | ${pkgs.jq}/bin/jq -r '
+      [recurse(.nodes[]?, .floating_nodes[]?) |
+        select(.scratchpad_state? != null and .scratchpad_state != "none")] |
+      .[] | "\(.app_id // .window_properties.class // "?")  \(.name)"
+    ' | ${pkgs.wofi}/bin/wofi --dmenu --prompt "Scratchpad")
+    [ -z "$selected" ] && exit 0
+    title=$(echo "$selected" | sed 's/^[^ ]*  //')
+    ${pkgs.sway}/bin/swaymsg "[title=\"$title\"] scratchpad show"
+  '';
+
   layoutInfo = pkgs.writeShellScriptBin "layout-info" ''
     data=$(${pkgs.sway}/bin/swaymsg -t get_tree | ${pkgs.jq}/bin/jq -r '
       ([recurse(.nodes[]?, .floating_nodes[]?) |
@@ -65,7 +76,7 @@ let
   '';
 in
 {
-  home.packages = with pkgs; [ cliphist swayr layoutCycle layoutInfo layoutHints ];
+  home.packages = with pkgs; [ cliphist swayr layoutCycle layoutInfo layoutHints scratchpadPick ];
 
   services.swayidle = {
     enable   = true;
@@ -163,53 +174,53 @@ in
         };
       };
       keybindings = let mod = "Mod4"; in {
-        "${mod}+Return"       = "exec foot";
-        "${mod}+d"            = "exec wofi --show drun";
-        "${mod}+q"            = "kill";
-        "${mod}+Shift+c"      = "reload";
-        "${mod}+Shift+e"      = "exec swaymsg exit";
-        "${mod}+ctrl+l"       = "exec loginctl lock-session";
-        "${mod}+h"            = "focus left";
-        "${mod}+j"            = "focus down";
-        "${mod}+k"            = "focus up";
-        "${mod}+l"            = "focus right";
-        "Alt+Tab"             = "exec ${pkgs.swayr}/bin/swayr next-window current-workspace";
-        "Alt+Shift+Tab"       = "exec ${pkgs.swayr}/bin/swayr prev-window current-workspace";
-        "${mod}+Shift+h"      = "move left";
-        "${mod}+Shift+j"      = "move down";
-        "${mod}+Shift+k"      = "move up";
-        "${mod}+Shift+l"      = "move right";
-        "${mod}+a"            = "mode layout; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+2 waybar";
-        "${mod}+Tab"          = "exec ${layoutCycle}/bin/layout-cycle";
-        "${mod}+f"            = "fullscreen toggle";
-        "${mod}+r"            = "mode resize";
-        "${mod}+minus"        = "scratchpad show";
-        "${mod}+Shift+minus"  = "move scratchpad";
-        "${mod}+space"        = "focus mode_toggle";
-        "${mod}+Shift+space"  = "floating toggle";
-        "${mod}+1"            = "workspace number 1";
-        "${mod}+2"            = "workspace number 2";
-        "${mod}+3"            = "workspace number 3";
-        "${mod}+4"            = "workspace number 4";
-        "${mod}+5"            = "workspace number 5";
-        "${mod}+6"            = "workspace number 6";
-        "${mod}+7"            = "workspace number 7";
-        "${mod}+8"            = "workspace number 8";
-        "${mod}+9"            = "workspace number 9";
-        "${mod}+0"            = "workspace number 10";
-        "${mod}+Shift+1"      = "move container to workspace number 1";
-        "${mod}+Shift+2"      = "move container to workspace number 2";
-        "${mod}+Shift+3"      = "move container to workspace number 3";
-        "${mod}+Shift+4"      = "move container to workspace number 4";
-        "${mod}+Shift+5"      = "move container to workspace number 5";
-        "${mod}+Shift+6"      = "move container to workspace number 6";
-        "${mod}+Shift+7"      = "move container to workspace number 7";
-        "${mod}+Shift+8"      = "move container to workspace number 8";
-        "${mod}+Shift+9"      = "move container to workspace number 9";
-        "${mod}+Shift+0"      = "move container to workspace number 10";
-        "${mod}+v"            = "exec cliphist list | wofi --dmenu | cliphist decode | wl-copy";
-        "${mod}+p"            = "exec grim -g \"$(slurp)\" - | wl-copy";
-        "${mod}+Ctrl+p"       = "exec grim -g \"$(slurp)\" ~/Pictures/$(date +%Y%m%d-%H%M%S).png";
+        "${mod}+Return"      = "exec foot";
+        "${mod}+space"       = "exec wofi --show drun";
+        "${mod}+q"           = "kill";
+        "${mod}+Shift+c"     = "reload";
+        "${mod}+Shift+e"     = "exec swaymsg exit";
+        "${mod}+ctrl+l"      = "exec loginctl lock-session";
+        "${mod}+h"           = "focus left";
+        "${mod}+j"           = "focus down";
+        "${mod}+k"           = "focus up";
+        "${mod}+l"           = "focus right";
+        "Alt+Tab"            = "exec ${pkgs.swayr}/bin/swayr next-window current-workspace";
+        "Alt+Shift+Tab"      = "exec ${pkgs.swayr}/bin/swayr prev-window current-workspace";
+        "${mod}+Shift+h"     = "move left";
+        "${mod}+Shift+j"     = "move down";
+        "${mod}+Shift+k"     = "move up";
+        "${mod}+Shift+l"     = "move right";
+        "${mod}+a"           = "mode layout; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+2 waybar";
+        "${mod}+Tab"         = "exec ${layoutCycle}/bin/layout-cycle";
+        "${mod}+f"           = "fullscreen toggle";
+        "${mod}+r"           = "mode resize";
+        "${mod}+minus"       = "scratchpad show";
+        "${mod}+ctrl+minus"  = "exec ${scratchpadPick}/bin/scratchpad-pick";
+        "${mod}+Shift+minus" = "move scratchpad";
+        "${mod}+Shift+f"     = "floating toggle";
+        "${mod}+1"           = "workspace number 1";
+        "${mod}+2"           = "workspace number 2";
+        "${mod}+3"           = "workspace number 3";
+        "${mod}+4"           = "workspace number 4";
+        "${mod}+5"           = "workspace number 5";
+        "${mod}+6"           = "workspace number 6";
+        "${mod}+7"           = "workspace number 7";
+        "${mod}+8"           = "workspace number 8";
+        "${mod}+9"           = "workspace number 9";
+        "${mod}+0"           = "workspace number 10";
+        "${mod}+Shift+1"     = "move container to workspace number 1";
+        "${mod}+Shift+2"     = "move container to workspace number 2";
+        "${mod}+Shift+3"     = "move container to workspace number 3";
+        "${mod}+Shift+4"     = "move container to workspace number 4";
+        "${mod}+Shift+5"     = "move container to workspace number 5";
+        "${mod}+Shift+6"     = "move container to workspace number 6";
+        "${mod}+Shift+7"     = "move container to workspace number 7";
+        "${mod}+Shift+8"     = "move container to workspace number 8";
+        "${mod}+Shift+9"     = "move container to workspace number 9";
+        "${mod}+Shift+0"     = "move container to workspace number 10";
+        "${mod}+v"           = "exec cliphist list | wofi --dmenu | cliphist decode | wl-copy";
+        "${mod}+p"           = "exec grim -g \"$(slurp)\" - | wl-copy";
+        "${mod}+Ctrl+p"      = "exec grim -g \"$(slurp)\" ~/Pictures/$(date +%Y%m%d-%H%M%S).png";
         "--locked XF86AudioMute"        = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
         "--locked XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -5%";
         "--locked XF86AudioRaiseVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ +5%";
