@@ -108,7 +108,8 @@ in
       };
       startup = [
         { command = "${pkgs.swayr}/bin/swayrd"; }
-        { command = "wl-paste --watch cliphist store"; }
+        { command = "wl-paste --watch cliphist store -max-items 200"; }
+        { command = "wl-paste --primary --watch cliphist store -max-items 200"; }
         { command = "waybar"; }
         { command = "mako"; }
         { command = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"; }
