@@ -1,8 +1,8 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, username, ... }: {
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
     auto-optimise-store = true;
-    trusted-users = [ "root" "vovin" "@wheel" ];
+    trusted-users = [ "root" username "@wheel" ];
   };
 
   nix.gc = {
@@ -12,6 +12,11 @@
   };
 
   nixpkgs.config.allowUnfree = true;
+
+  # Keep /etc/nixos owned by primary user so rebuilds don't require sudo for editing
+  systemd.tmpfiles.rules = [
+    "d /etc/nixos 0755 ${username} users -"
+  ];
 
   # wrap nixos-rebuild to avoid HOME ownership warning
   environment.shellAliases = {

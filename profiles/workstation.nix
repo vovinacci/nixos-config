@@ -1,4 +1,4 @@
-{ config, pkgs, pkgs-stable, nix-index-database, sops-nix, ... }: {
+{ config, pkgs, pkgs-stable, nix-index-database, sops-nix, username, ... }: {
   imports = [
     ../modules/system/audio.nix
     ../modules/system/desktop.nix
@@ -13,15 +13,15 @@
     useGlobalPkgs   = true;
     useUserPackages = true;
     backupFileExtension = "bak";
-    extraSpecialArgs = { inherit pkgs-stable nix-index-database sops-nix; };
-    users.vovin = import ../home/workstation.nix;
+    extraSpecialArgs = { inherit pkgs-stable nix-index-database sops-nix username; };
+    users.${username} = import ../home/workstation.nix;
   };
 
   sops.secrets.user_password_hash = {
     neededForUsers = true;
   };
 
-  users.users.vovin = {
+  users.users.${username} = {
     isNormalUser = true;
     extraGroups  = [ "wheel" "networkmanager" "video" "input" "audio" "docker" "cdrom" ];
     shell = pkgs.zsh;

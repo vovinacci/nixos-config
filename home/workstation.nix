@@ -1,4 +1,4 @@
-{ config, pkgs, nix-index-database, sops-nix, ... }: {
+{ config, pkgs, nix-index-database, sops-nix, username, ... }: {
   imports = [
     nix-index-database.homeModules.nix-index
     sops-nix.homeManagerModules.sops
@@ -18,8 +18,8 @@
     ../modules/home/wofi.nix
   ];
 
-  home.username      = "vovin";
-  home.homeDirectory = "/home/vovin";
+  home.username      = username;
+  home.homeDirectory = "/home/${username}";
   home.stateVersion  = "26.05";
 
   programs.nix-index-database.comma.enable = true;

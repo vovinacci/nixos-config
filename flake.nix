@@ -34,14 +34,31 @@
     ...
   }:
   let
-    mkSystem = { system, hostname, profiles ? [] }:
+    mkSystem = { system, hostname, username, profiles ? [] }:
       nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = {
-          inherit impermanence sops-nix nix-index-database;
+          inherit impermanence sops-nix nix-index-database username;
           pkgs-stable = nixpkgs-stable.legacyPackages.${system};
         };
         modules = [
+          {
+            # TODO: remove these overrides as upstream fixes land on unstable
+            nixpkgs.overlays = [
+              (final: prev: {
+                # Broken test_style_output tests with python3.13 (blocks pgcli)
+                python3Packages = prev.python3Packages.overrideScope (pyFinal: pyPrev: {
+                  cli-helpers = pyPrev.cli-helpers.overridePythonAttrs {
+                    doCheck = false;
+                  };
+                });
+                # Flaky syncreplication test (blocks lutris)
+                openldap = prev.openldap.overrideAttrs {
+                  doCheck = false;
+                };
+              })
+            ];
+          }
           ./hosts/${hostname}/default.nix
           ./modules/system/common.nix
           impermanence.nixosModules.impermanence
@@ -54,6 +71,7 @@
       darkhero = mkSystem {
         system   = "x86_64-linux";
         hostname = "darkhero";
+        username = "vovin";
         profiles = [ ./profiles/workstation.nix ];
       };
     };
