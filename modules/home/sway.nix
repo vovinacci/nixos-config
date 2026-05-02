@@ -175,7 +175,7 @@ in
         };
       };
       keybindings = let mod = "Mod4"; in {
-        "${mod}+Return"      = "exec foot";
+        "${mod}+Return"      = "exec ghostty";
         "${mod}+space"       = "exec wofi --show drun";
         "${mod}+q"           = "kill";
         "${mod}+Shift+c"     = "reload";
