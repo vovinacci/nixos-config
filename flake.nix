@@ -56,6 +56,16 @@
                 openldap = prev.openldap.overrideAttrs {
                   doCheck = false;
                 };
+                # vhba 20250329 fails on kernel >=6.11 (queuecommand signature change)
+                linuxPackages_zen = prev.linuxPackages_zen.extend (lpFinal: lpPrev: {
+                  vhba = lpPrev.vhba.overrideAttrs (_: rec {
+                    version = "20260313";
+                    src = prev.fetchurl {
+                      url = "mirror://sourceforge/cdemu/vhba-module-${version}.tar.xz";
+                      hash = "sha256-KTADv12dwrOG2w0F9ZXFVINVpTXW38Bv03n9mLsZAXQ=";
+                    };
+                  });
+                });
               })
             ];
           }

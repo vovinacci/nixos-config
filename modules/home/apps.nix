@@ -19,7 +19,7 @@
     slack
     signal-desktop
     telegram-desktop
-    wasistlos
+    karere
     zoom-us
     teams-for-linux
     vscode

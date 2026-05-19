@@ -5,3 +5,4 @@ result-*
 secrets/*.yaml
 !secrets/*.sops.yaml
 **/.claude/settings.local.json
+.omc
