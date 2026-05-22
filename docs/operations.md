@@ -166,10 +166,11 @@ before collecting.
 
 ### Automatic
 
-Configured in `modules/system/common.nix` via `nix.gc`:
+Configured in `modules/system/common.nix` via `programs.nh.clean`:
 
-- Runs **weekly** (systemd timer: `nix-gc.timer`).
-- Deletes store paths **older than 30 days** (`--delete-older-than 30d`).
+- Runs **weekly** (systemd timer: `nh-clean.timer`).
+- Deletes generations older than **30 days** (`--keep-since 30d`).
+- Always retains the **last 5 generations** regardless of age (`--keep 5`).
 
 ### Store Optimisation
 

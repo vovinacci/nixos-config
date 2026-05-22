@@ -5,10 +5,11 @@
     trusted-users = [ "root" username "@wheel" ];
   };
 
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 30d";
+  programs.nh = {
+    enable = true;
+    clean.enable = true;
+    clean.dates = "weekly";
+    clean.extraArgs = "--keep 5 --keep-since 30d";
   };
 
   nixpkgs.config.allowUnfree = true;
