@@ -7,6 +7,7 @@
     ../modules/system/input.nix
     ../modules/system/networking.nix
     ../modules/system/bluetooth.nix
+    ../modules/system/memory-tools.nix
   ];
 
   home-manager = {
