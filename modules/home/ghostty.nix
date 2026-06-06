@@ -20,8 +20,6 @@
       mouse-hide-while-typing = true;
       clipboard-trim-trailing-spaces = true;
 
-      scrollback-limit = 100000;
-
       shell-integration = "detect";
       shell-integration-features = "cursor,sudo,title,ssh-env,ssh-terminfo";
     };

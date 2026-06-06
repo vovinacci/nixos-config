@@ -46,16 +46,6 @@
             # TODO: remove these overrides as upstream fixes land on unstable
             nixpkgs.overlays = [
               (final: prev: {
-                # Broken test_style_output tests with python3.13 (blocks pgcli)
-                python3Packages = prev.python3Packages.overrideScope (pyFinal: pyPrev: {
-                  cli-helpers = pyPrev.cli-helpers.overridePythonAttrs {
-                    doCheck = false;
-                  };
-                });
-                # Flaky syncreplication test (blocks lutris)
-                openldap = prev.openldap.overrideAttrs {
-                  doCheck = false;
-                };
                 # vhba 20250329 fails on kernel >=6.11 (queuecommand signature change)
                 linuxPackages_zen = prev.linuxPackages_zen.extend (lpFinal: lpPrev: {
                   vhba = lpPrev.vhba.overrideAttrs (_: rec {
