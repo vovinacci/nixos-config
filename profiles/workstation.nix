@@ -24,7 +24,7 @@
 
   users.users.${username} = {
     isNormalUser = true;
-    extraGroups  = [ "wheel" "networkmanager" "video" "input" "audio" "docker" "cdrom" ];
+    extraGroups  = [ "wheel" "networkmanager" "video" "input" "audio" "docker" "cdrom" "i2c" ];
     shell = pkgs.zsh;
     hashedPasswordFile = config.sops.secrets.user_password_hash.path;
     openssh.authorizedKeys.keys = [

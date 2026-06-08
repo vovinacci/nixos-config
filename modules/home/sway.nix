@@ -37,6 +37,17 @@ let
     ${pkgs.sway}/bin/swaymsg "[title=\"$title\"] scratchpad show"
   '';
 
+  screenRec = pkgs.writeShellScriptBin "screen-rec" ''
+    if ${pkgs.procps}/bin/pgrep -x wf-recorder >/dev/null; then
+      ${pkgs.procps}/bin/pkill -INT -x wf-recorder
+      ${pkgs.libnotify}/bin/notify-send "Recording" "Stopped — saved to ~/Videos"
+    else
+      f="$HOME/Videos/$(${pkgs.coreutils}/bin/date +%Y%m%d-%H%M%S).mp4"
+      ${pkgs.libnotify}/bin/notify-send "Recording" "Started → $f"
+      ${pkgs.wf-recorder}/bin/wf-recorder -g "$(${pkgs.slurp}/bin/slurp)" -f "$f"
+    fi
+  '';
+
   layoutInfo = pkgs.writeShellScriptBin "layout-info" ''
     data=$(${pkgs.sway}/bin/swaymsg -t get_tree | ${pkgs.jq}/bin/jq -r '
       ([recurse(.nodes[]?, .floating_nodes[]?) |
@@ -76,7 +87,7 @@ let
   '';
 in
 {
-  home.packages = with pkgs; [ cliphist swayr layoutCycle layoutInfo layoutHints scratchpadPick ];
+  home.packages = with pkgs; [ cliphist swayr autotiling satty ddcutil wf-recorder layoutCycle layoutInfo layoutHints scratchpadPick screenRec ];
 
   services.swayidle = {
     enable   = true;
@@ -98,6 +109,7 @@ in
 
   wayland.windowManager.sway = {
     enable = true;
+    systemd.enable = true;
     config = {
       modifier = "Mod4";
       input = {
@@ -108,18 +120,17 @@ in
       };
       startup = [
         { command = "${pkgs.swayr}/bin/swayrd"; }
-        { command = "wl-paste --watch cliphist store -max-items 200"; }
-        { command = "wl-paste --primary --watch cliphist store -max-items 200"; }
-        { command = "waybar"; }
-        { command = "mako"; }
+        { command = "${pkgs.autotiling}/bin/autotiling"; }
+        { command = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store -max-items 200"; }
+        { command = "${pkgs.wl-clipboard}/bin/wl-paste --primary --watch ${pkgs.cliphist}/bin/cliphist store -max-items 200"; }
         { command = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"; }
-        { command = "wlsunset -l 50.4 -L 30.5"; }
-        { command = "foot --server"; }
-        { command = "udiskie --tray"; }
-        { command = "nm-applet --indicator"; }
+        { command = "${pkgs.wlsunset}/bin/wlsunset -l 50.4 -L 30.5"; }
+        { command = "${pkgs.foot}/bin/foot --server"; }
+        { command = "${pkgs.udiskie}/bin/udiskie --tray"; }
+        { command = "${pkgs.networkmanagerapplet}/bin/nm-applet --indicator"; }
       ];
-      terminal = "footclient";
-      menu     = "wofi --show drun";
+      terminal = "${pkgs.foot}/bin/footclient";
+      menu     = "${pkgs.wofi}/bin/wofi --show drun";
       fonts = {
         names = [ "JetBrainsMono Nerd Font" ];
         size  = 12.0;
@@ -175,8 +186,8 @@ in
         };
       };
       keybindings = let mod = "Mod4"; in {
-        "${mod}+Return"      = "exec ghostty";
-        "${mod}+space"       = "exec wofi --show drun";
+        "${mod}+Return"      = "exec ${pkgs.ghostty}/bin/ghostty";
+        "${mod}+space"       = "exec ${pkgs.wofi}/bin/wofi --show drun";
         "${mod}+q"           = "kill";
         "${mod}+Shift+c"     = "reload";
         "${mod}+Shift+e"     = "exec swaymsg exit";
@@ -194,7 +205,10 @@ in
         "${mod}+a"           = "mode layout; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+2 waybar";
         "${mod}+Tab"         = "exec ${layoutCycle}/bin/layout-cycle";
         "${mod}+f"           = "fullscreen toggle";
+        "${mod}+n"           = "exec ${pkgs.swaynotificationcenter}/bin/swaync-client -t -sw";
+        "${mod}+Shift+n"     = "exec ${pkgs.swaynotificationcenter}/bin/swaync-client -d -sw";
         "${mod}+r"           = "mode resize";
+        "${mod}+Shift+r"     = "exec ${screenRec}/bin/screen-rec";
         "${mod}+minus"       = "scratchpad show";
         "${mod}+ctrl+minus"  = "exec ${scratchpadPick}/bin/scratchpad-pick";
         "${mod}+Shift+minus" = "move scratchpad";
@@ -219,19 +233,24 @@ in
         "${mod}+Shift+8"     = "move container to workspace number 8";
         "${mod}+Shift+9"     = "move container to workspace number 9";
         "${mod}+Shift+0"     = "move container to workspace number 10";
-        "${mod}+v"           = "exec cliphist list | wofi --dmenu | cliphist decode | wl-copy";
-        "${mod}+p"           = "exec grim -g \"$(slurp)\" - | wl-copy";
-        "${mod}+Ctrl+p"      = "exec grim -g \"$(slurp)\" ~/Pictures/$(date +%Y%m%d-%H%M%S).png";
-        "--locked XF86AudioMute"        = "exec pactl set-sink-mute @DEFAULT_SINK@ toggle";
-        "--locked XF86AudioLowerVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ -5%";
-        "--locked XF86AudioRaiseVolume" = "exec pactl set-sink-volume @DEFAULT_SINK@ +5%";
-        "--locked XF86AudioMicMute"     = "exec pactl set-source-mute @DEFAULT_SOURCE@ toggle";
+        "${mod}+v"           = "exec ${pkgs.cliphist}/bin/cliphist list | ${pkgs.wofi}/bin/wofi --dmenu | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy";
+        "${mod}+p"           = "exec ${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\" - | ${pkgs.satty}/bin/satty --filename - --output-filename ~/Pictures/$(date +%Y%m%d-%H%M%S).png --early-exit --copy-command ${pkgs.wl-clipboard}/bin/wl-copy";
+        "${mod}+Shift+p"     = "exec ${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\" - | ${pkgs.wl-clipboard}/bin/wl-copy";
+        "${mod}+Ctrl+p"      = "exec ${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\" ~/Pictures/$(date +%Y%m%d-%H%M%S).png";
+        "--locked XF86MonBrightnessUp"   = "exec ${pkgs.ddcutil}/bin/ddcutil setvcp 10 + 10";
+        "--locked XF86MonBrightnessDown" = "exec ${pkgs.ddcutil}/bin/ddcutil setvcp 10 - 10";
+        "--locked XF86AudioMute"        = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle";
+        "--locked XF86AudioLowerVolume" = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%";
+        "--locked XF86AudioRaiseVolume" = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%";
+        "--locked XF86AudioMicMute"     = "exec ${pkgs.pulseaudio}/bin/pactl set-source-mute @DEFAULT_SOURCE@ toggle";
         "--locked XF86AudioPlay"        = "exec ${pkgs.playerctl}/bin/playerctl play-pause";
         "--locked XF86AudioNext"        = "exec ${pkgs.playerctl}/bin/playerctl next";
         "--locked XF86AudioPrev"        = "exec ${pkgs.playerctl}/bin/playerctl previous";
       };
     };
     extraConfig = ''
+      for_window [app_id=".*"] inhibit_idle fullscreen
+      for_window [class=".*"] inhibit_idle fullscreen
       for_window [app_id="udiskie"] floating enable
       for_window [app_id="Slack" title="^Huddle:"] floating enable
       for_window [app_id=".blueman-manager-wrapped"] floating enable
@@ -239,8 +258,8 @@ in
       for_window [app_id="nm-connection-editor"] floating enable
       for_window [class="jetbrains-idea" title="Welcome to IntelliJ IDEA"] floating enable
       output * bg #1a1a2e solid_color
-      exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
-      exec systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+      exec ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
+      exec ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
     '';
   };
 }

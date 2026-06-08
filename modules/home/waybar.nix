@@ -1,6 +1,7 @@
 { config, pkgs, ... }: {
   programs.waybar = {
     enable = true;
+    systemd.enable = true;
     style = builtins.readFile "${pkgs.waybar}/etc/xdg/waybar/style.css" + ''
       * {
         font-size: 16px;
@@ -22,7 +23,7 @@
 
       modules-left   = [ "sway/workspaces" "sway/mode" "custom/layout" "custom/layout-hints" "mpris" ];
       modules-center = [ "clock" ];
-      modules-right  = [ "privacy" "idle_inhibitor" "disk" "temperature" "cpu" "memory" "bluetooth" "pulseaudio" "network" "sway/language" "tray" "custom/sleep" "custom/lock" ];
+      modules-right  = [ "privacy" "idle_inhibitor" "disk" "temperature" "cpu" "memory" "bluetooth" "pulseaudio" "network" "sway/language" "tray" "custom/notification" "custom/sleep" "custom/lock" ];
 
       "sway/workspaces" = {
         disable-scroll = true;
@@ -62,7 +63,7 @@
         format        = "{icon} {volume}%";
         format-muted  = "󰝟";
         format-icons  = { default = [ "󰕿" "󰖀" "󰕾" ]; };
-        on-click      = "pactl set-sink-mute @DEFAULT_SINK@ toggle";
+        on-click      = "${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle";
       };
 
       network = {
@@ -103,7 +104,7 @@
         format          = "󰂯 {status}";
         format-connected = "󰂱 {device_alias}";
         format-disabled = "";
-        on-click        = "blueman-manager";
+        on-click        = "${pkgs.blueman}/bin/blueman-manager";
         tooltip-format  = "{controller_alias} · {controller_address}\n{num_connections} connected";
         tooltip-format-connected = "{device_enumerate}";
         tooltip-format-enumerate-connected = "{device_alias} · {device_address}";
@@ -112,7 +113,7 @@
       "sway/language" = {
         format   = "⌨ {short}";
         tooltip  = false;
-        on-click = "swaymsg input '*' xkb_switch_layout next";
+        on-click = "${pkgs.sway}/bin/swaymsg input '*' xkb_switch_layout next";
       };
 
       disk = {
@@ -142,6 +143,26 @@
 
       tray = {
         spacing = 15;
+      };
+
+      "custom/notification" = {
+        tooltip      = false;
+        format       = "{icon}";
+        format-icons = {
+          notification     = "󱅫";
+          none             = "󰂚";
+          dnd-notification = "󰂛";
+          dnd-none         = "󰂛";
+          inhibited-notification = "󱅫";
+          inhibited-none   = "󰂚";
+          dnd-inhibited-notification = "󰂛";
+          dnd-inhibited-none = "󰂛";
+        };
+        return-type    = "json";
+        exec           = "${pkgs.swaynotificationcenter}/bin/swaync-client -swb";
+        on-click       = "${pkgs.swaynotificationcenter}/bin/swaync-client -t -sw";
+        on-click-right = "${pkgs.swaynotificationcenter}/bin/swaync-client -d -sw";
+        escape         = true;
       };
     };
   };

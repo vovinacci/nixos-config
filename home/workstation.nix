@@ -14,7 +14,7 @@
     ../modules/home/media.nix
     ../modules/home/apps.nix
     ../modules/home/gaming.nix
-    ../modules/home/mako.nix
+    ../modules/home/swaync.nix
     ../modules/home/gtk.nix
     ../modules/home/wofi.nix
   ];
