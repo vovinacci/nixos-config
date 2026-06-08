@@ -149,14 +149,14 @@
         tooltip      = false;
         format       = "{icon}";
         format-icons = {
-          notification     = "󱅫";
-          none             = "󰂚";
-          dnd-notification = "󰂛";
-          dnd-none         = "󰂛";
-          inhibited-notification = "󱅫";
-          inhibited-none   = "󰂚";
-          dnd-inhibited-notification = "󰂛";
-          dnd-inhibited-none = "󰂛";
+          notification     = "󱅫 ";
+          none             = "󰂚 ";
+          dnd-notification = "󰂛 ";
+          dnd-none         = "󰂛 ";
+          inhibited-notification = "󱅫 ";
+          inhibited-none   = "󰂚 ";
+          dnd-inhibited-notification = "󰂛 ";
+          dnd-inhibited-none = "󰂛 ";
         };
         return-type    = "json";
         exec           = "${pkgs.swaynotificationcenter}/bin/swaync-client -swb";
