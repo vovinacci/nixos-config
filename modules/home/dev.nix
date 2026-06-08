@@ -94,6 +94,7 @@
     eslint
 
     # languages
+    gcc
     go
     nodejs
     ruby
