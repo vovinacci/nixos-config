@@ -1,7 +1,8 @@
-{ config, pkgs, pkgs-stable, ... }: {
-  home.packages = [
-    pkgs-stable.openapi-generator-cli
-  ] ++ (with pkgs; [
+{ config, pkgs, ... }: {
+  home.packages = with pkgs; [
+    # api codegen
+    openapi-generator-cli
+
     # github
     gh
     git-lfs
@@ -125,7 +126,7 @@
     postman
     keybase
     winbox
-  ]);
+  ];
 
   programs.direnv = {
     enable = true;

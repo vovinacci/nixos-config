@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-25.05";
 
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -26,7 +25,6 @@
   outputs = {
     self,
     nixpkgs,
-    nixpkgs-stable,
     home-manager,
     impermanence,
     nix-index-database,
@@ -39,26 +37,8 @@
         inherit system;
         specialArgs = {
           inherit impermanence sops-nix nix-index-database username;
-          pkgs-stable = nixpkgs-stable.legacyPackages.${system};
         };
         modules = [
-          {
-            # TODO: remove these overrides as upstream fixes land on unstable
-            nixpkgs.overlays = [
-              (final: prev: {
-                # vhba 20250329 fails on kernel >=6.11 (queuecommand signature change)
-                linuxPackages_zen = prev.linuxPackages_zen.extend (lpFinal: lpPrev: {
-                  vhba = lpPrev.vhba.overrideAttrs (_: rec {
-                    version = "20260313";
-                    src = prev.fetchurl {
-                      url = "mirror://sourceforge/cdemu/vhba-module-${version}.tar.xz";
-                      hash = "sha256-KTADv12dwrOG2w0F9ZXFVINVpTXW38Bv03n9mLsZAXQ=";
-                    };
-                  });
-                });
-              })
-            ];
-          }
           ./hosts/${hostname}/default.nix
           ./modules/system/common.nix
           impermanence.nixosModules.impermanence

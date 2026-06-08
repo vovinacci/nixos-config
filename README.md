@@ -30,8 +30,7 @@ docs/            - operational documentation
   is bind-mounted from `/persist`.
 - **Secrets**: SOPS/age with a three-key model - host age key (boot-time), user age key
   (session), and YubiKey (interactive editing). See [Security](docs/security.md).
-- **Two nixpkgs channels**: `nixpkgs` (unstable) is the default; `nixpkgs-stable` (25.05)
-  is available as `pkgs-stable` for packages that need stable.
+- **Nixpkgs channel**: tracks `nixos-unstable`.
 
 ## Quick Start
 

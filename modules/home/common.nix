@@ -122,6 +122,14 @@
     maxCacheTtl      = 86400;
   };
 
+  # TODO: drop once home-manager's ssh-auth-sock module sets DefaultDependencies
+  # itself (upstream bug). The module (merged 2026-06-02) emits
+  # set-SSH_AUTH_SOCK.service as a oneshot ordered Before=gpg-agent-ssh.socket
+  # but without DefaultDependencies=false, so it inherits After=basic.target.
+  # That inverts the socket ordering and yields a cyclic transaction. Opt the
+  # early-boot oneshot out of default deps to break the cycle.
+  systemd.user.services.set-SSH_AUTH_SOCK.Unit.DefaultDependencies = false;
+
   home.activation.reloadGpgAgent = lib.hm.dag.entryAfter ["writeBoundary"] ''
     ${pkgs.gnupg}/bin/gpg-connect-agent reloadagent /bye > /dev/null 2>&1 || true
   '';

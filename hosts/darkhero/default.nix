@@ -18,6 +18,12 @@
   boot.kernelPackages = pkgs.linuxPackages_zen;
   boot.extraModulePackages = [ config.boot.kernelPackages.vhba ];
   boot.kernelModules = [ "vhba" ];
+
+  # vhba ships no udev rule, so /dev/vhba_ctl defaults to root:root 0600 and the
+  # user cdemu-daemon cannot open it. Grant the cdrom group access.
+  services.udev.extraRules = ''
+    KERNEL=="vhba_ctl", SUBSYSTEM=="misc", GROUP="cdrom", MODE="0660"
+  '';
   boot.kernelParams = [ 
     "rootdelay=20"
     "usbcore.autosuspend=-1"
