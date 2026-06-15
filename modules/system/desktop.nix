@@ -61,8 +61,8 @@
     firefox
     polkit_gnome
     wlsunset
+    qt5.qtwayland
     qt6.qtwayland
-    libsForQt5.qt5.qtwayland
     udiskie
     networkmanagerapplet
   ];
