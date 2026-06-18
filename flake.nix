@@ -20,6 +20,11 @@
       url = "github:mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    xremap = {
+      url = "github:xremap/nix-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -29,6 +34,7 @@
     impermanence,
     nix-index-database,
     sops-nix,
+    xremap,
     ...
   }:
   let
@@ -44,6 +50,7 @@
           impermanence.nixosModules.impermanence
           home-manager.nixosModules.home-manager
           sops-nix.nixosModules.sops
+          xremap.nixosModules.default
         ] ++ profiles;
       };
   in {

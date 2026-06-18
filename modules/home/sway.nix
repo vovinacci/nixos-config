@@ -87,7 +87,7 @@ let
   '';
 in
 {
-  home.packages = with pkgs; [ cliphist swayr autotiling satty ddcutil wf-recorder layoutCycle layoutInfo layoutHints scratchpadPick screenRec ];
+  home.packages = with pkgs; [ cliphist wl-clip-persist swayr autotiling satty ddcutil wf-recorder layoutCycle layoutInfo layoutHints scratchpadPick screenRec ];
 
   services.swayidle = {
     enable   = true;
@@ -121,6 +121,7 @@ in
       startup = [
         { command = "${pkgs.swayr}/bin/swayrd"; }
         { command = "${pkgs.autotiling}/bin/autotiling"; }
+        { command = "${pkgs.wl-clip-persist}/bin/wl-clip-persist --clipboard regular"; }
         { command = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store -max-items 200"; }
         { command = "${pkgs.wl-clipboard}/bin/wl-paste --primary --watch ${pkgs.cliphist}/bin/cliphist store -max-items 200"; }
         { command = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"; }
@@ -233,7 +234,7 @@ in
         "${mod}+Shift+8"     = "move container to workspace number 8";
         "${mod}+Shift+9"     = "move container to workspace number 9";
         "${mod}+Shift+0"     = "move container to workspace number 10";
-        "${mod}+v"           = "exec ${pkgs.cliphist}/bin/cliphist list | ${pkgs.wofi}/bin/wofi --dmenu | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy";
+        "${mod}+Shift+v"     = "exec ${pkgs.cliphist}/bin/cliphist list | ${pkgs.wofi}/bin/wofi --dmenu | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy";
         "${mod}+p"           = "exec ${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\" - | ${pkgs.satty}/bin/satty --filename - --output-filename ~/Pictures/$(date +%Y%m%d-%H%M%S).png --early-exit --copy-command ${pkgs.wl-clipboard}/bin/wl-copy";
         "${mod}+Shift+p"     = "exec ${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\" - | ${pkgs.wl-clipboard}/bin/wl-copy";
         "${mod}+Ctrl+p"      = "exec ${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\" ~/Pictures/$(date +%Y%m%d-%H%M%S).png";
