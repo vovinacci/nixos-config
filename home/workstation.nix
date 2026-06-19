@@ -10,6 +10,7 @@
     ../modules/home/ghostty.nix
     ../modules/home/firefox.nix
     ../modules/home/dev.nix
+    ../modules/home/yazi.nix
     ../modules/home/fonts.nix
     ../modules/home/media.nix
     ../modules/home/apps.nix

@@ -165,6 +165,12 @@
         src  = pkgs.zsh-powerlevel10k;
         file = "share/zsh-powerlevel10k/powerlevel10k.zsh-theme";
       }
+      {
+        # fzf on TAB: fuzzy completion menus with previews (cd/kill/git/...)
+        name = "fzf-tab";
+        src  = pkgs.zsh-fzf-tab;
+        file = "share/fzf-tab/fzf-tab.plugin.zsh";
+      }
     ];
     initContent = ''
       [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -198,6 +204,14 @@
             gh pr list --repo "$org/$repo" --state open --json title,url,author
           done | jq -cr '.[] | select(. != null) | "title: \(.title)\nurl:   \(.url) (\(.author.login))\n"'
       }
+
+      # fzf-tab: disable zsh's own menu so fzf-tab can take over TAB completion
+      zstyle ':completion:*' menu no
+      # preview directory contents when completing cd / z
+      zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --icons $realpath'
+      zstyle ':fzf-tab:complete:z:*'  fzf-preview 'eza -1 --color=always --icons $realpath'
+      # accept current selection and trigger next completion with /
+      zstyle ':fzf-tab:*' continuous-trigger '/'
 
       # source local zsh config (private aliases, tokens, work-specific stuff)
       [[ ! -f ~/.config/zsh/local.zsh ]] || source ~/.config/zsh/local.zsh
@@ -342,6 +356,25 @@
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
+  };
+
+  # SQLite shell history: fuzzy, context-aware (dir/host/exit), full-text.
+  # Covers zsh AND bash (work scripting). Ctrl-R opens atuin; up-arrow stays
+  # with zsh history-substring-search via --disable-up-arrow.
+  programs.atuin = {
+    enable                = true;
+    enableZshIntegration  = true;
+    enableBashIntegration = true;
+    flags                 = [ "--disable-up-arrow" ];
+    settings = {
+      style        = "compact";
+      inline_height = 25;
+      show_preview = true;
+      # Enter edits the line first instead of running it immediately (safer);
+      # press Enter again to run. Set true to run on first Enter.
+      enter_accept = false;
+      filter_mode_shell_up_key_binding = "session";
+    };
   };
 
   home.sessionVariables = {
