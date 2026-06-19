@@ -55,11 +55,19 @@
 
   services.udisks2.enable = true;
 
+  # Allow `-o allow_other` on FUSE mounts so a root-mounted apfs-fuse volume
+  # (encrypted macOS disk) is browsable by the normal user in yazi.
+  programs.fuse.userAllowOther = true;
+
   # Let wheel users mount/unmount/eject internal (non-removable) disks via
   # udisks2 without an admin password. yazi's mount manager (=v) calls
   # `udisksctl --no-user-interaction`, which cannot show a polkit prompt; on a
   # single-user physical workstation, granting wheel directly is the pragmatic
   # way to make =v work for fixed disks (ntfs/hfsplus/exfat).
+  # NOTE: APFS is intentionally NOT covered here. The macOS disk is
+  # FileVault-encrypted, which the in-kernel linux-apfs-rw driver refuses
+  # ("encrypted volumes are not supported"), so udisks/=v can't mount it.
+  # Read it with apfs-fuse (below), which handles encryption with a password.
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
       if (subject.isInGroup("wheel") && (
@@ -83,7 +91,7 @@
     qt6.qtwayland
     udiskie
     networkmanagerapplet
-    apfs-fuse   # read-only access to macOS APFS disks (manual FUSE mount)
+    apfs-fuse   # read encrypted/macOS APFS disks (FUSE, read-only, prompts for password)
   ];
 
   environment.sessionVariables = {
