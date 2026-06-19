@@ -27,9 +27,13 @@
   services.udev.extraRules = ''
     KERNEL=="vhba_ctl", SUBSYSTEM=="misc", GROUP="cdrom", MODE="0660"
   '';
-  boot.kernelParams = [ 
+  boot.kernelParams = [
     "rootdelay=20"
     "usbcore.autosuspend=-1"
+    # Root SSD (Transcend ESD310C, 2174:2100) is a USB device on UAS, behind an
+    # ASMedia ASM1074 hub. UAS link resets corrupt the FS. Force BOT (disable
+    # UAS) for this bridge to test stability before the XFS migration.
+    "usb-storage.quirks=2174:2100:u"
   ];
   boot.supportedFilesystems = [ "btrfs" ];
   boot.initrd.supportedFilesystems = [ "btrfs" ];
