@@ -55,6 +55,24 @@
 
   services.udisks2.enable = true;
 
+  # Let wheel users mount/unmount/eject internal (non-removable) disks via
+  # udisks2 without an admin password. yazi's mount manager (=v) calls
+  # `udisksctl --no-user-interaction`, which cannot show a polkit prompt; on a
+  # single-user physical workstation, granting wheel directly is the pragmatic
+  # way to make =v work for fixed disks (ntfs/hfsplus/exfat).
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (subject.isInGroup("wheel") && (
+            action.id == "org.freedesktop.udisks2.filesystem-mount" ||
+            action.id == "org.freedesktop.udisks2.filesystem-mount-system" ||
+            action.id == "org.freedesktop.udisks2.filesystem-unmount-others" ||
+            action.id == "org.freedesktop.udisks2.eject-media" ||
+            action.id == "org.freedesktop.udisks2.power-off-drive")) {
+        return polkit.Result.YES;
+      }
+    });
+  '';
+
   environment.systemPackages = with pkgs; [
     waybar wofi foot
     grim slurp wl-clipboard mako
@@ -65,6 +83,7 @@
     qt6.qtwayland
     udiskie
     networkmanagerapplet
+    apfs-fuse   # read-only access to macOS APFS disks (manual FUSE mount)
   ];
 
   environment.sessionVariables = {
