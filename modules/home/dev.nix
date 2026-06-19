@@ -29,6 +29,9 @@
     socat
     asciinema
     pv
+    dust       # du replacement: visual, sorted tree of disk usage
+    duf        # df replacement: colored, grouped filesystem overview
+    tealdeer   # `tldr`: concise command examples
 
     # network tools
     nmap

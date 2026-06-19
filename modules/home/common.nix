@@ -101,14 +101,18 @@
     includes = [{ path = "~/.config/git/user"; }];
   };
 
-  programs.delta = {
-    enable                = true;
-    enableGitIntegration  = true;
+  # Structural (AST-aware) diff. mode = "external" routes git diff/show/log -p
+  # through difft. Replaces delta — home-manager forbids two diff tools at once.
+  programs.difftastic = {
+    enable = true;
     options = {
-      navigate     = true;
-      side-by-side = true;
-      line-numbers = true;
-      syntax-theme = "Catppuccin Mocha";
+      background = "dark";
+      color      = "always";
+      display    = "side-by-side";
+    };
+    git = {
+      enable = true;
+      mode   = "external";
     };
   };
 
