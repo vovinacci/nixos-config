@@ -36,6 +36,7 @@
     # network tools
     nmap
     mtr
+    dnsutils
     tcpflow
     tcpreplay
 
