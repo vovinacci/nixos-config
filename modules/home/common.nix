@@ -53,6 +53,10 @@
       d               = "diff";
       dc              = "diff --cached";
       last            = "diff HEAD^";
+      # structural (difftastic) diff on demand
+      dft             = "!GIT_EXTERNAL_DIFF=difft git diff";
+      dfts            = "!GIT_EXTERNAL_DIFF=difft git show --ext-diff";
+      dftl            = "!GIT_EXTERNAL_DIFF=difft git log -p --ext-diff";
       # add
       a               = "add";
       chunkyadd       = "add --patch";
@@ -101,19 +105,25 @@
     includes = [{ path = "~/.config/git/user"; }];
   };
 
-  # Structural (AST-aware) diff. mode = "external" routes git diff/show/log -p
-  # through difft. Replaces delta — home-manager forbids two diff tools at once.
+  # delta is the default git pager (line-based — shows blank-line/whitespace
+  # changes, which difftastic's structural diff hides).
+  programs.delta = {
+    enable                = true;
+    enableGitIntegration  = true;
+    options = {
+      navigate     = true;
+      side-by-side = true;
+      line-numbers = true;
+      syntax-theme = "Catppuccin Mocha";
+    };
+  };
+
+  # difftastic installed but NOT wired into git (home-manager allows only one
+  # diff tool integration). Use it on demand via the `dft` git alias for a
+  # structural, AST-aware diff. DFT_* env themes those on-demand invocations.
   programs.difftastic = {
     enable = true;
-    options = {
-      background = "dark";
-      color      = "always";
-      display    = "side-by-side";
-    };
-    git = {
-      enable = true;
-      mode   = "external";
-    };
+    git.enable = false;
   };
 
   programs.gpg.enable = true;
@@ -385,5 +395,8 @@
     EDITOR   = "nvim";
     VISUAL   = "nvim";
     MANPAGER = "sh -c 'col -bx | bat -l man -p'";
+    # theme on-demand difftastic (git dft / dfts)
+    DFT_DISPLAY    = "side-by-side";
+    DFT_BACKGROUND = "dark";
   };
 }
