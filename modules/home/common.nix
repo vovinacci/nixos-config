@@ -131,7 +131,7 @@
   services.gpg-agent = {
     enable           = true;
     enableSshSupport = true;
-    pinentry.package = pkgs.pinentry-gnome3;
+    pinentry.package = pkgs.pinentry-qt;
     defaultCacheTtl  = 28800;
     maxCacheTtl      = 86400;
   };
@@ -144,8 +144,11 @@
   # early-boot oneshot out of default deps to break the cycle.
   systemd.user.services.set-SSH_AUTH_SOCK.Unit.DefaultDependencies = false;
 
+  # Refresh the agent's TTY/DISPLAY after a switch WITHOUT flushing the PIN cache.
+  # (`reloadagent` flushes caches by design → previously dropped the PIN every
+  # rebuild; `updatestartuptty` only re-points the agent at the current session.)
   home.activation.reloadGpgAgent = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    ${pkgs.gnupg}/bin/gpg-connect-agent reloadagent /bye > /dev/null 2>&1 || true
+    ${pkgs.gnupg}/bin/gpg-connect-agent updatestartuptty /bye > /dev/null 2>&1 || true
   '';
 
   programs.nix-index = {
