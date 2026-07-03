@@ -368,6 +368,8 @@
   programs.fzf = {
     enable = true;
     enableZshIntegration = true;
+    # Atuin owns Ctrl-R; keep fzf for Ctrl-T / Alt-C only.
+    historyWidget.command = "";
   };
 
   programs.zoxide = {
