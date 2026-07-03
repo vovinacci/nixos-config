@@ -189,7 +189,7 @@
         file = "share/fzf-tab/fzf-tab.plugin.zsh";
       }
     ];
-    initContent = ''
+    initContent = lib.mkMerge [ ''
       [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
       # vi-mode: change cursor shape and reset prompt on mode change
@@ -232,7 +232,12 @@
 
       # source local zsh config (private aliases, tokens, work-specific stuff)
       [[ ! -f ~/.config/zsh/local.zsh ]] || source ~/.config/zsh/local.zsh
-    '';
+    ''
+    (lib.mkOrder 2500 ''
+      # atuin >= 18.16 binds '?' on an empty buffer to its AI assistant;
+      # restore plain '?' (must run after the atuin integration, order 2000)
+      bindkey '?' self-insert
+    '') ];
     shellAliases = {
       ls  = "eza --icons";
       ll  = "eza -la --git --icons";
