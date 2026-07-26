@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, lib, ... }: {
   home.packages = with pkgs; [
     # api codegen
     openapi-generator-cli
@@ -69,7 +69,7 @@
     ssm-session-manager-plugin
 
     # kubernetes
-    kubectl
+    (lib.hiPrio kubectl) # win over kubectl bundled by minikube
     kubectx
     k9s
     kubernetes-helm
