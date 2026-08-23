@@ -13,7 +13,9 @@
     };
     systemd-boot = {
       enable = true;
-      configurationLimit = 10;
+      # /boot/efi is 512M and each generation costs ~95M (14M kernel + 81M
+      # initrd), so anything above 4 fills the ESP mid-install.
+      configurationLimit = 4;
     };
   };
 
