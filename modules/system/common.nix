@@ -7,8 +7,13 @@
 
   programs.nh = {
     enable = true;
+    # Exports NH_FLAKE, so `nh os switch` needs no path argument. `-H darkhero`
+    # is also unnecessary - nh defaults the host to the current hostname.
+    flake = "/etc/nixos";
     clean.enable = true;
     clean.dates = "weekly";
+    # Keep >= boot.loader.systemd-boot.configurationLimit (4), or the boot menu
+    # gets starved. See docs/operations.md.
     clean.extraArgs = "--keep 5 --keep-since 30d";
   };
 
