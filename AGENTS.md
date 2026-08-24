@@ -30,11 +30,13 @@ starting Phase 2**. Based on Kumar & Rana, *Model-First Reasoning LLM Agents:
 Reducing Hallucinations through Explicit Problem Modeling*
 (<https://arxiv.org/html/2512.14474v1>).
 
-**Non-trivial** means any of: touching more than one module; changing boot,
-filesystems, impermanence, secrets, or flake inputs; adding or removing a
-package or service; or anything whose effect you cannot demonstrate with a
-single `nix eval`. Single-file comment fixes, typos, and reordering within one
-attribute set are trivial - just do them.
+**Non-trivial** means a change *to the configuration* that does any of: touches
+more than one module; changes boot, filesystems, impermanence, secrets, or flake
+inputs; adds or removes a package or service; or alters runtime behaviour you
+cannot demonstrate with a single `nix eval` - stylesheets and unit definitions
+count here, since evaluation proves they are generated but never that they are
+correct. Documentation, comments, typos, and reordering within one attribute set
+are trivial - just do them.
 
 ### Phase 1 - build the model. Produce no solution.
 
