@@ -114,7 +114,7 @@
 
     # ai cli tools
     claude-code
-    gemini-cli
+    antigravity-cli  # binary is `agy`; successor to the removed gemini-cli
 
     # git tools
     lazygit
