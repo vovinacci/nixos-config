@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, username, ... }: {
   imports = [
     ./hardware-configuration.nix
     ./impermanence.nix
@@ -46,6 +46,22 @@
     age.sshKeyPaths = [];
     age.keyFile = "/persist/var/lib/sops-nix/key.txt";
     age.generateKey = false;
+  };
+
+  # Host-specific home-manager settings. Shared modules under modules/home/
+  # must stay machine-agnostic, so the physical display and this machine's
+  # geographic position live here rather than in modules/home/sway.nix.
+  home-manager.users.${username} = {
+    wayland.windowManager.sway.config.output."DP-2" = {
+      mode  = "3840x2160@143.963Hz";
+      scale = "1.0";
+    };
+
+    services.wlsunset = {
+      enable    = true;
+      latitude  = 50.4;   # Kyiv
+      longitude = 30.5;
+    };
   };
 
   system.stateVersion = "26.05";

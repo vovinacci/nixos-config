@@ -84,7 +84,6 @@
   environment.systemPackages = with pkgs; [
     grim slurp wl-clipboard
     polkit_gnome
-    wlsunset
     qt5.qtwayland
     qt6.qtwayland
     udiskie

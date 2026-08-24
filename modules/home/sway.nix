@@ -124,7 +124,6 @@ in
         { command = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store -max-items 200"; }
         { command = "${pkgs.wl-clipboard}/bin/wl-paste --primary --watch ${pkgs.cliphist}/bin/cliphist store -max-items 200"; }
         { command = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"; }
-        { command = "${pkgs.wlsunset}/bin/wlsunset -l 50.4 -L 30.5"; }
         { command = "${pkgs.udiskie}/bin/udiskie --tray"; }
         { command = "${pkgs.networkmanagerapplet}/bin/nm-applet --indicator"; }
       ];
@@ -132,12 +131,6 @@ in
       fonts = {
         names = [ "JetBrainsMono Nerd Font" ];
         size  = 12.0;
-      };
-      output = {
-        "DP-2" = {
-          mode  = "3840x2160@143.963Hz";
-          scale = "1.0";
-        };
       };
       window.border = 2;
       colors = {
