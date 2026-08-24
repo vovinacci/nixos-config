@@ -4,20 +4,29 @@
 
 1. **Edit** the relevant module under `modules/system/`, `modules/home/`, or a host
    file under `hosts/`.
-2. **Test** in a VM before touching the live system:
+2. **Evaluate** first - this is cheap and catches deprecated options and removed
+   packages before you build anything:
    ```shell
-   nixos-rebuild build-vm --flake /etc/nixos#darkhero
+   nix eval --raw .#nixosConfigurations.darkhero.config.system.build.toplevel.drvPath
+   ```
+   It must print a `.drv` path with no `evaluation warning:` lines.
+3. **Test** in a VM before touching the live system:
+   ```shell
+   nh os build-vm
    ./result/bin/run-darkhero-vm
    ```
    The VM has no hardware-specific features (no YubiKey, no GPU passthrough, no real
    disk layout), but it is sufficient to catch syntax errors and basic runtime issues.
-3. **Apply** to the live system:
+4. **Apply** to the live system:
    ```shell
-   nixos-rebuild switch --flake /etc/nixos#darkhero
+   nh os switch
    ```
-   This uses the shell alias defined in `modules/system/common.nix`, which wraps the
-   command with `sudo env HOME=/root` to avoid a HOME ownership warning from sudo.
-4. **Commit** once the system is working.
+   `nh` elevates privileges itself - do not prefix it with `sudo`. No path or `-H` is
+   needed; `programs.nh.flake` exports `NH_FLAKE=/etc/nixos` and nh defaults the host to
+   the current hostname. Add `-u` when you also want to bump `flake.lock` - keep that a
+   deliberate step rather than part of every rebuild. Use `nh os test` to activate
+   without making the generation the boot default.
+5. **Commit** once the system is working.
 
 ## Module Conventions
 

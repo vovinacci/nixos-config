@@ -34,16 +34,25 @@ docs/            - operational documentation
 
 ## Quick Start
 
-Rebuild and switch (uses the `nixos-rebuild` alias from `modules/system/common.nix`):
+Rebuild and switch (`nh` wraps `nixos-rebuild` and handles privilege elevation
+itself, so no `sudo`):
 
 ```shell
-nixos-rebuild switch --flake /etc/nixos#darkhero
+nh os switch
+```
+
+`programs.nh.flake` exports `NH_FLAKE=/etc/nixos`, so no path argument is needed,
+and nh defaults the host to the current hostname. Add `-u` when you also want to
+bump every flake input. Build without activating:
+
+```shell
+nh os build
 ```
 
 Test in a VM before switching:
 
 ```shell
-nixos-rebuild build-vm --flake /etc/nixos#darkhero
+nh os build-vm
 ./result/bin/run-darkhero-vm
 ```
 

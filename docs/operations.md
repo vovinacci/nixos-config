@@ -5,24 +5,45 @@
 ### Update All Inputs
 
 ```shell
-cd /etc/nixos
-nix flake update
-nixos-rebuild switch --flake /etc/nixos#darkhero
+nh os switch -u
 ```
 
-`nix flake update` rewrites `flake.lock` to the latest commits of all inputs. Review
-the diff (`git diff flake.lock`) before rebuilding to understand what changed.
+No path or `-H` argument is needed: `programs.nh.flake` in `modules/system/common.nix`
+exports `NH_FLAKE=/etc/nixos`, and nh defaults the host to the current hostname.
+
+`-u` rewrites `flake.lock` to the latest commits of all inputs, then builds and
+activates in one step. Keep it a deliberate act - running it on every rebuild means
+every switch is also an unreviewed dependency bump. To review what changed before committing, run `git diff
+flake.lock` afterwards - the rebuild has already happened by then, so use the split
+form below if you want to inspect first.
+
+Split form (update, review, then rebuild):
+
+```shell
+cd /etc/nixos
+nix flake update
+git diff flake.lock
+nh os switch
+```
 
 ### Update a Single Input
 
 ```shell
-nix flake lock --update-input nixpkgs
-nixos-rebuild switch --flake /etc/nixos#darkhero
+nix flake update nixpkgs
+nh os switch
 ```
 
 Prefer partial updates when you need a specific fix or package bump but want to keep
 the rest of the system stable. Update all inputs periodically (e.g. monthly) to stay
 current with security patches.
+
+### Build Without Activating
+
+```shell
+nh os build   # build only
+nh os test    # activate, but do not set as boot default
+nh os boot    # set as boot default, do not activate now
+```
 
 ---
 
@@ -34,13 +55,13 @@ all generations in the boot menu - selecting an older entry is the easiest recov
 ### List Generations
 
 ```shell
-nix-env --list-generations -p /nix/var/nix/profiles/system
+nh os info
 ```
 
 ### Roll Back to the Previous Generation
 
 ```shell
-nixos-rebuild switch --rollback
+nh os rollback
 ```
 
 ### Roll Back to a Specific Generation
@@ -134,7 +155,7 @@ Commit the updated `.sops.yaml` and `secrets/*.sops.yaml` files.
 Build a VM image from the current flake config:
 
 ```shell
-nixos-rebuild build-vm --flake /etc/nixos#darkhero
+nh os build-vm
 ./result/bin/run-darkhero-vm
 ```
 
@@ -171,6 +192,26 @@ Configured in `modules/system/common.nix` via `programs.nh.clean`:
 - Runs **weekly** (systemd timer: `nh-clean.timer`).
 - Deletes generations older than **30 days** (`--keep-since 30d`).
 - Always retains the **last 5 generations** regardless of age (`--keep 5`).
+
+The equivalent manual invocation is:
+
+```shell
+nh clean all --keep 5 --keep-since 30d
+```
+
+`--keep` and `boot.loader.systemd-boot.configurationLimit` are independent. `--keep`
+controls how many generations survive garbage collection in `/nix` (per profile:
+system, home-manager, and user profiles). `configurationLimit` (set to **4** in
+`hosts/darkhero/default.nix`) controls how many entries the bootloader writes to the
+512 MB ESP, which is the actual space constraint. Keeping more generations than boot
+entries is harmless - the extra generation simply has no menu entry. Keeping *fewer*
+than `configurationLimit` is the mistake to avoid, since it starves the boot menu.
+
+`nh-clean.timer` uses `Persistent=true`, which requires `/var/lib/systemd/timers` to
+survive reboots. That directory is listed in `hosts/darkhero/impermanence.nix`; if it
+is ever removed from that list, the timer silently resets its last-run stamp on every
+boot and a weekly job will never fire on a machine that reboots more often than
+weekly.
 
 ### Store Optimisation
 
