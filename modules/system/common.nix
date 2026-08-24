@@ -24,11 +24,6 @@
     "d /etc/nixos 0755 ${username} users -"
   ];
 
-  # wrap nixos-rebuild to avoid HOME ownership warning
-  environment.shellAliases = {
-    nixos-rebuild = "sudo env HOME=/root /run/current-system/sw/bin/nixos-rebuild";
-  };
-
   environment.systemPackages = with pkgs; [
     git curl wget neovim
     ripgrep fd bat bat-extras.batman eza fzf htop btop
@@ -45,6 +40,9 @@
   services.fwupd.enable = true;
 
   services.pcscd.enable = true;
+  # Restarting pcscd drops every open PC/SC session, which kills an in-flight
+  # YubiKey PIV/GPG session mid-rebuild. Leave the running daemon alone on
+  # switch; a reboot picks up any new version.
   systemd.services.pcscd.restartIfChanged = false;
 
   hardware.enableRedistributableFirmware = true;

@@ -369,7 +369,6 @@
 
   home.file.".ssh/config.d/.keep".text = "";
 
-
   programs.fzf = {
     enable = true;
     enableZshIntegration = true;

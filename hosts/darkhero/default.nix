@@ -19,7 +19,6 @@
     };
   };
 
-
   boot.kernelPackages = pkgs.linuxPackages_zen;
   boot.extraModulePackages = [ config.boot.kernelPackages.vhba ];
   boot.kernelModules = [ "vhba" ];
