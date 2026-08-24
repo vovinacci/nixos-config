@@ -37,6 +37,23 @@
 | Hardware, kernel, daemons, system services    | `modules/system/` |
 | User dotfiles, user applications, desktop env | `modules/home/`   |
 
+**One layer owns each package.** The most common defect in this repo is the same
+program installed twice - once in `environment.systemPackages` and once in
+`home.packages`, or once as a package and once by the module that already installs
+it. Before adding a package, grep for it across `modules/` and check whether an
+option already provides it:
+
+- `services.blueman.enable` installs `blueman`
+- `programs.solaar.enable` installs `solaar`
+- `programs.delta`, `programs.fzf`, `programs.waybar`, `programs.firefox`, and
+  `programs.yazi` each install their own package
+
+The system layer is for root-shell and rescue tooling (`git`, `curl`, `neovim`) and
+for things with no home-manager equivalent. Anything configured through
+`programs.*`/`services.*` in home-manager belongs to the home layer only. A package
+that a module configures should be installed by that same module - see
+`modules/home/wofi.nix`, which owns both the wofi package and its stylesheet.
+
 ### New Module vs Extending Existing
 
 - **New module**: when the concern is self-contained and togglable (e.g. a new hardware
@@ -44,8 +61,6 @@
   `modules/home/<name>.nix` and import it in the relevant profile or home entrypoint.
 - **Extend existing**: when the change logically belongs to an existing module (e.g.
   adding a package to `dev.nix`, tweaking a keybinding in `sway.nix`).
-
-Avoid putting host-specific options in shared modules - those belong in `hosts/<name>/`.
 
 ### Wiring a New Module In
 
@@ -64,6 +79,70 @@ imports = [
 ];
 ```
 
+### Host-Specific Configuration
+
+Shared modules must not hardcode a particular machine - monitor names, refresh
+rates, and geographic coordinates belong in `hosts/<name>/`.
+
+Known outstanding violations. Do not add more; prefer fixing one if you are already
+editing the file:
+
+- `modules/home/sway.nix` pins output `DP-2` to `3840x2160@143.963Hz`
+- `modules/home/sway.nix` passes Kyiv coordinates to `wlsunset`
+
+### Generated Files
+
+`hosts/<name>/hardware-configuration.nix` is produced by `nixos-generate-config` and
+is effectively read-only - edits are lost the next time it is regenerated. Declare
+kernel modules, filesystem options, and drivers in `modules/system/` or
+`hosts/<name>/default.nix` instead. Where an exception exists it carries a comment
+explaining what must not be re-added.
+
+## Workarounds
+
+A workaround in this repo states three things: *what is broken upstream*, *why this
+fixes it*, and *when it can be removed*. Existing examples to follow:
+
+- `hosts/darkhero/default.nix` - vhba udev rule, USB storage quirk
+- `modules/home/common.nix` - `set-SSH_AUTH_SOCK` dependency cycle, atuin `?` rebind
+- `modules/system/desktop.nix` - udisks polkit rule, FUSE `allow_other`
+
+**Never delete a commented workaround because it looks obsolete.** Verify upstream
+first: read the module source under `/nix/store/*-source/`, or run the tool and
+inspect its output.
+
+Two in the tree have been re-verified and are still required. Do not remove either
+without repeating that check:
+
+| Workaround | Why it still applies |
+|------------|----------------------|
+| `set-SSH_AUTH_SOCK.Unit.DefaultDependencies = false` | home-manager's `modules/misc/ssh-auth-sock.nix` still emits the cyclic ordering |
+| `bindkey '?' self-insert` at `mkOrder 2500` | `atuin init zsh` still binds `?` to its AI prompt |
+
+## Theme
+
+Desktop surfaces (sway, waybar, swaync, wofi, swaylock) share one palette. Reuse
+these values rather than inventing hex codes:
+
+| Role          | Value     |
+|---------------|-----------|
+| base          | `#1a1a2e` |
+| mantle        | `#181825` |
+| surface0      | `#313244` |
+| surface1      | `#45475a` |
+| overlay0      | `#6c7086` |
+| text          | `#cdd6f4` |
+| subtext       | `#bac2de` |
+| blue (accent) | `#89b4fa` |
+| green         | `#a6e3a1` |
+| peach         | `#fab387` |
+| red           | `#f38ba8` |
+
+Everything except `base` is stock Catppuccin Mocha. `#1a1a2e` is this repo's own
+darker base, deliberately not Mocha's `#1e1e2e` - match the repo, not upstream
+Catppuccin. `modules/home/waybar.nix` is the one surface still using waybar's
+upstream stylesheet.
+
 ## Commit Message Format
 
 Use [Conventional Commits](https://www.conventionalcommits.org/):
@@ -72,7 +151,8 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 <type>: <short description>
 ```
 
-Common types: `feat`, `fix`, `refactor`, `docs`, `chore`.
+Common types: `feat`, `fix`, `refactor`, `docs`, `chore`, and `deps` - this repo's
+own type for flake input bumps.
 
 Examples:
 

@@ -58,6 +58,7 @@ nh os build-vm
 
 ## Further Reading
 
+- [Agent Instructions](AGENTS.md) - how automated agents must work in this repo
 - [Contributing](CONTRIBUTING.md) - making changes, testing, commit conventions
 - [Operations](docs/operations.md) - updates, rollbacks, adding hosts, test VMs
 - [Security](docs/security.md) - secrets management, YubiKey, key rotation
