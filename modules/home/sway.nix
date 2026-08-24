@@ -126,11 +126,9 @@ in
         { command = "${pkgs.wl-clipboard}/bin/wl-paste --primary --watch ${pkgs.cliphist}/bin/cliphist store -max-items 200"; }
         { command = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"; }
         { command = "${pkgs.wlsunset}/bin/wlsunset -l 50.4 -L 30.5"; }
-        { command = "${pkgs.foot}/bin/foot --server"; }
         { command = "${pkgs.udiskie}/bin/udiskie --tray"; }
         { command = "${pkgs.networkmanagerapplet}/bin/nm-applet --indicator"; }
       ];
-      terminal = "${pkgs.foot}/bin/footclient";
       menu     = "${pkgs.wofi}/bin/wofi --show drun";
       fonts = {
         names = [ "JetBrainsMono Nerd Font" ];

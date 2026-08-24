@@ -9,7 +9,7 @@
     config.keymap = [
       {
         name = "terminals";
-        application.only = [ "foot" "com.mitchellh.ghostty" ];  # footclient is app_id "foot"
+        application.only = [ "com.mitchellh.ghostty" ];
         remap = { "SUPER-c" = "C-Shift-c"; "SUPER-v" = "C-Shift-v"; "SUPER-x" = "C-Shift-x"; };
       }
       {

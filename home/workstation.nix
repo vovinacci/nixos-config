@@ -6,7 +6,6 @@
     ../modules/home/neovim.nix
     ../modules/home/sway.nix
     ../modules/home/waybar.nix
-    ../modules/home/foot.nix
     ../modules/home/ghostty.nix
     ../modules/home/firefox.nix
     ../modules/home/dev.nix
