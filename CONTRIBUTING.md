@@ -165,6 +165,27 @@ docs: document secrets rotation procedure
 
 Keep the subject line under 72 characters. No trailing full stop.
 
+### Body
+
+The body is **optional, and most commits should not have one**. The diff already
+shows what changed; a body exists to answer *why*, and only when the diff cannot.
+
+Write one when:
+
+- the reason is not visible in the diff - a change that looks like a no-op but
+  fixes a silent bug, or a removal that looks risky but is not
+- there is evidence worth recording: a quoted evaluation warning, an empty
+  `nix store diff-closures`, a measurement behind a chosen number
+
+Skip it when the subject plus the diff already tell the whole story. Renames,
+package moves, doc rewrites, and comment fixes usually need nothing.
+
+**Do not restate in the body what the same diff puts in a comment.** Comments
+describe the state, commit messages describe the change, and they have different
+lifespans: people read code, not `git log`. If a reason has to survive - "do not
+delete this, here is what breaks" - it belongs in a comment next to the code. Put
+it there, then keep the commit body short or omit it.
+
 ## What NOT to Put in This Repository
 
 - **Plaintext secrets** of any kind - passwords, private keys, tokens, API keys.
