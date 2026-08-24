@@ -1,5 +1,4 @@
 { config, pkgs, lib, ... }: {
-  hardware.steam-hardware.enable = true;
   hardware.i2c.enable = true;  # DDC/CI brightness control via ddcutil
 
   programs.sway = {

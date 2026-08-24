@@ -3,6 +3,7 @@
     ../modules/system/audio.nix
     ../modules/system/desktop.nix
     ../modules/system/docker.nix
+    ../modules/system/gaming.nix
     ../modules/system/gpu.nix
     ../modules/system/input.nix
     ../modules/system/keymap.nix

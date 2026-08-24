@@ -8,8 +8,8 @@
     heroic
     lutris
 
-    # steam + proton for broader library
-    steam
+    # proton for broader library (steam itself is programs.steam, see
+    # modules/system/gaming.nix)
     protonup-qt      # manage proton versions
 
     # tools
