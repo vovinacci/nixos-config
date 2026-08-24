@@ -23,5 +23,6 @@
     zoom-us
     teams-for-linux
     vscode
+    jetbrains.idea
   ];
 }

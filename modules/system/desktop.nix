@@ -82,9 +82,7 @@
   '';
 
   environment.systemPackages = with pkgs; [
-    waybar wofi foot
-    grim slurp wl-clipboard mako
-    firefox
+    grim slurp wl-clipboard
     polkit_gnome
     wlsunset
     qt5.qtwayland

@@ -18,7 +18,6 @@
     # data tools
     jq
     yq
-    fzf
     parallel
     dos2unix
     rename
@@ -106,7 +105,6 @@
     python3
 
     # docker tools
-    dive
     oxker
 
     # database
@@ -118,11 +116,7 @@
 
     # git tools
     lazygit
-    delta
     prek
-
-    # file manager
-    mc
 
     # misc
     lynx

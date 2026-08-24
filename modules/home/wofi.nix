@@ -1,4 +1,9 @@
-{ config, ... }: {
+{ config, pkgs, ... }: {
+  # This module owns wofi: the package and its stylesheet. The sway
+  # keybindings reference it by store path, so it also has to be on PATH
+  # here for interactive use.
+  home.packages = [ pkgs.wofi ];
+
   xdg.configFile."wofi/style.css".text = ''
     window {
       background-color: #1a1a2e;

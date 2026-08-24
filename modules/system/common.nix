@@ -35,7 +35,6 @@
     pciutils usbutils
     cdemu-client cdemu-daemon
     pulseaudio
-    blueman
     yubikey-manager
     yubikey-personalization
     pcsc-tools

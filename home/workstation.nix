@@ -1,7 +1,7 @@
 { config, pkgs, nix-index-database, sops-nix, username, ... }: {
   imports = [
     nix-index-database.homeModules.nix-index
-    sops-nix.homeManagerModules.sops
+    sops-nix.homeModules.sops
     ../modules/home/common.nix
     ../modules/home/neovim.nix
     ../modules/home/sway.nix
@@ -55,8 +55,4 @@
     };
     Install.WantedBy = [ "default.target" ];
   };
-
-  home.packages = with pkgs; [
-    jetbrains.idea
-  ];
 }
