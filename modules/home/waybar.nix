@@ -52,16 +52,28 @@
         padding: 0 4px;
       }
 
+      /* background-image and box-shadow are set to none deliberately. The GTK
+         theme paints button states through both - notably
+         `button:hover { box-shadow: inset 0 0 0 9999px alpha(currentColor, .08) }`,
+         a full-bleed inset flood tinted with the button's own text colour. CSS
+         specificity cannot beat that, because it is a property this sheet
+         otherwise never declares: an undeclared property is not a contest the
+         more specific selector wins, it is one it never enters. Left open, a
+         light `color` floods the button light and the label vanishes into it. */
       #workspaces button {
         padding: 0 8px;
         margin: 6px 2px;
         color: #6c7086;
         background-color: #181825;
+        background-image: none;
+        box-shadow: none;
         border-radius: 6px;
       }
 
       #workspaces button:hover {
-        background-color: #313244;
+        background-color: #45475a;
+        background-image: none;
+        box-shadow: none;
         color: #cdd6f4;
       }
 
