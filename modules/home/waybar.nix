@@ -2,18 +2,194 @@
   programs.waybar = {
     enable = true;
     systemd.enable = true;
-    style = builtins.readFile "${pkgs.waybar}/etc/xdg/waybar/style.css" + ''
+    # Self-contained, on the repo palette (see CONTRIBUTING.md). Replaces
+    # waybar's upstream stylesheet, which is Roboto/FontAwesome on a grey
+    # translucent bar and matched nothing else on this desktop.
+    style = ''
       * {
+        font-family: "JetBrainsMono Nerd Font";
         font-size: 16px;
+        border: none;
+        border-radius: 0;
+        min-height: 0;
       }
-      #mode {
-        color: #fab387;
+
+      window#waybar {
+        background-color: #1a1a2e;
+        color: #cdd6f4;
+      }
+
+      window#waybar.hidden {
+        opacity: 0.2;
+      }
+
+      #workspaces,
+      #mode,
+      #custom-layout,
+      #custom-layout-hints,
+      #mpris,
+      #clock,
+      #privacy,
+      #idle_inhibitor,
+      #disk,
+      #temperature,
+      #cpu,
+      #memory,
+      #bluetooth,
+      #pulseaudio,
+      #network,
+      #language,
+      #tray,
+      #custom-notification,
+      #custom-sleep,
+      #custom-lock {
+        padding: 0 10px;
+        color: #cdd6f4;
+        background-color: transparent;
+      }
+
+      #workspaces {
+        padding: 0 4px;
+      }
+
+      #workspaces button {
         padding: 0 8px;
+        margin: 6px 2px;
+        color: #6c7086;
+        background-color: #181825;
+        border-radius: 6px;
+      }
+
+      #workspaces button:hover {
+        background-color: #313244;
+        color: #cdd6f4;
+      }
+
+      /* Ordered least- to most-important: a focused workspace also carries
+         .visible, and these selectors have equal specificity, so whichever
+         comes last wins. .focused must therefore follow .visible. */
+      #workspaces button.visible {
+        color: #bac2de;
+      }
+
+      #workspaces button.focused {
+        background-color: #89b4fa;
+        color: #1a1a2e;
         font-weight: bold;
       }
+
+      #workspaces button.urgent {
+        background-color: #f38ba8;
+        color: #1a1a2e;
+      }
+
+      #mode {
+        color: #fab387;
+        font-weight: bold;
+      }
+
+      #custom-layout {
+        color: #89b4fa;
+      }
+
       #custom-layout-hints {
         color: #bac2de;
         font-style: italic;
+      }
+
+      #mpris {
+        color: #a6e3a1;
+      }
+
+      #clock {
+        color: #cdd6f4;
+        font-weight: bold;
+      }
+
+      #cpu {
+        color: #a6e3a1;
+      }
+
+      #memory {
+        color: #fab387;
+      }
+
+      #disk {
+        color: #bac2de;
+      }
+
+      #temperature {
+        color: #a6e3a1;
+      }
+
+      #temperature.critical {
+        color: #f38ba8;
+        font-weight: bold;
+      }
+
+      #bluetooth {
+        color: #89b4fa;
+      }
+
+      #bluetooth.disabled,
+      #bluetooth.off {
+        color: #6c7086;
+      }
+
+      #pulseaudio {
+        color: #89b4fa;
+      }
+
+      #pulseaudio.muted {
+        color: #6c7086;
+      }
+
+      #network {
+        color: #89b4fa;
+      }
+
+      #network.disconnected {
+        color: #f38ba8;
+      }
+
+      #language {
+        color: #bac2de;
+      }
+
+      #privacy {
+        color: #f38ba8;
+      }
+
+      #idle_inhibitor {
+        color: #6c7086;
+      }
+
+      #idle_inhibitor.activated {
+        color: #fab387;
+      }
+
+      #custom-notification {
+        color: #cdd6f4;
+      }
+
+      #custom-sleep {
+        color: #bac2de;
+      }
+
+      #custom-lock {
+        color: #f38ba8;
+      }
+
+      #tray {
+        padding: 0 8px;
+      }
+
+      #tray > .passive {
+        -gtk-icon-effect: dim;
+      }
+
+      #tray > .needs-attention {
+        -gtk-icon-effect: highlight;
       }
     '';
     settings.mainBar = {
