@@ -11,13 +11,11 @@
     enable = true;
     wlr.enable = true;
     extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-    config = {
-      sway = {
-        default = lib.mkForce [ "wlr" "gtk" ];
-        "org.freedesktop.impl.portal.ScreenCast" = [ "wlr" ];
-        "org.freedesktop.impl.portal.Screenshot" = [ "wlr" ];
-      };
-    };
+    # No config block: programs.sway already sets xdg.portal.config.sway with
+    # ScreenCast and Screenshot routed to wlr, everything else to gtk, and
+    # Inhibit disabled. Overriding `default` to prefer wlr for every interface
+    # gained nothing - wlr only implements the two - and needed a mkForce to
+    # fight the upstream value.
   };
 
   security.pam.services.swaylock = {};
