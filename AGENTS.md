@@ -20,7 +20,65 @@ repeated here:
 
 **Read `CONTRIBUTING.md` before your first change to this repo.** In particular
 "System vs Home" (one layer owns each package) and "Workarounds" - those two
-cover the defects agents introduce here most often.
+cover the defects agents introduce here most often. For anything non-trivial,
+model the change before solving it - see Model-First Reasoning below.
+
+## Model-First Reasoning (MFR)
+
+For any non-trivial change, work in two phases and **surface Phase 1 before
+starting Phase 2**. Based on Kumar & Rana, *Model-First Reasoning LLM Agents:
+Reducing Hallucinations through Explicit Problem Modeling*
+(<https://arxiv.org/html/2512.14474v1>).
+
+**Non-trivial** means any of: touching more than one module; changing boot,
+filesystems, impermanence, secrets, or flake inputs; adding or removing a
+package or service; or anything whose effect you cannot demonstrate with a
+single `nix eval`. Single-file comment fixes, typos, and reordering within one
+attribute set are trivial - just do them.
+
+### Phase 1 - build the model. Produce no solution.
+
+State, for this change only:
+
+- **Entities** - the hosts, profiles, modules, options, packages, services,
+  units, persistence entries, flake inputs, and secrets involved.
+- **State variables** - what is true now and could change. Which layer owns a
+  package. Whether an option is already set, and by whom: this repo, or an
+  upstream module such as `programs.sway`. What is persisted versus on tmpfs.
+  What is *running* versus what is *configured* - they differ until a switch,
+  and for some changes until a reboot or re-login.
+- **Actions, with preconditions and effects** - `nix eval` has no precondition
+  and no system effect. `nh os build` builds but activates nothing. `nh os
+  switch` and `nh clean` mutate the live system and are the operator's to run,
+  never yours. `nix flake lock` rewrites `flake.lock`. Adding an impermanence
+  entry only proves itself after a reboot.
+- **Constraints** - the rules in `CONTRIBUTING.md`, plus anything specific to
+  this change. Name the ones that actually bind here.
+- **Unknowns** - what you have not verified yet, and how you intend to verify
+  it. Prefer reading the module source under `/nix/store/*-source/` or
+  evaluating an option over assuming.
+
+Do not write edits, diffs, or commands during Phase 1. The separation is the
+point: it is what stops a plausible-sounding fix from being built on an
+unexamined assumption.
+
+### Phase 2 - solve using only the model
+
+Every action must respect a precondition you listed, every effect must be one
+you predicted, and every constraint must still hold at the end. If you discover
+mid-solve that the model was wrong, **return to Phase 1 and correct it** rather
+than patching around it - a wrong model that gets patched produces exactly the
+confident, wrong answer this is meant to prevent.
+
+### Worked example
+
+A change to waybar's stylesheet in this repo shipped a defect because Phase 1
+was skipped. The model would have had to record that a focused sway workspace
+carries **both** the `.focused` and `.visible` classes (a state variable), and
+that equal-specificity CSS rules resolve by source order (a constraint). Neither
+was written down, `.visible` was placed after `.focused`, and it repainted the
+focused label to an unreadable light-grey on light-blue. Stating the two facts
+first would have made the ordering requirement obvious before a line was written.
 
 ## Never Apply Changes Yourself
 
