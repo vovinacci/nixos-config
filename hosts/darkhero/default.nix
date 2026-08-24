@@ -32,8 +32,12 @@
     "rootdelay=20"
     "usbcore.autosuspend=-1"
     # Root SSD (Transcend ESD310C, 2174:2100) is a USB device on UAS, behind an
-    # ASMedia ASM1074 hub. UAS link resets corrupt the FS. Force BOT (disable
-    # UAS) for this bridge to test stability before the XFS migration.
+    # ASMedia ASM1074 hub. UAS link resets corrupt the FS, so BOT is forced
+    # (UAS disabled) for this bridge.
+    #
+    # This is a mitigation, not a fix: the kernel still panics on this machine.
+    # Keep it anyway - dropping it re-exposes the root filesystem to corruption
+    # on link reset, which is strictly worse than the panics.
     "usb-storage.quirks=2174:2100:u"
   ];
   boot.supportedFilesystems = [ "btrfs" ];
