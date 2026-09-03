@@ -48,7 +48,33 @@
     # Re-enabling UAS would restore queueing and IOPS, but only makes sense
     # once the thermal ceiling is handled - retest before touching it.
     "usb-storage.quirks=2174:2100:u"
+    # Render a panic as a QR code of the kernel log. amdgpu registers with the
+    # drm panic handler, so this works from inside a Wayland session.
+    "drm.panic_screen=qr_code"
   ];
+  # Diagnostics for the USB root dropout (see IOWriteBandwidthMax comment).
+  #
+  # When the enclosure leaves the bus, btrfs reports `bdev <missing disk>` and
+  # the kernel survives with no root - so it never panics, drm_panic never
+  # fires, and journald cannot write anything because /var/log is on the disk
+  # that just vanished. The only record is the console, and consoleLogLevel=4
+  # (the NixOS default) suppresses the KERN_INFO `USB disconnect` line that
+  # says why. The cause has been lost to this three times over.
+  #
+  # consoleLogLevel=7 puts the USB and xHCI messages back on screen, and
+  # drm.panic_screen=qr_code makes any panic render the whole ring buffer as a
+  # photographable QR code rather than a wall of scrolling text.
+  boot.consoleLogLevel = 7;
+
+  # Panic instead of limping when btrfs hits a fatal error. Merged into the
+  # option lists in hardware-configuration.nix, which is generated and must not
+  # be edited by hand. Without this the kernel survives the disk vanishing and
+  # prints to a console nobody can save; with it, the panic handler dumps the
+  # whole ring buffer as a QR code.
+  fileSystems."/nix".options     = [ "fatal_errors=panic" ];
+  fileSystems."/home".options    = [ "fatal_errors=panic" ];
+  fileSystems."/persist".options = [ "fatal_errors=panic" ];
+
   boot.supportedFilesystems = [ "btrfs" ];
   boot.initrd.supportedFilesystems = [ "btrfs" ];
 
