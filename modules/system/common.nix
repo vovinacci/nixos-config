@@ -42,9 +42,7 @@
   # /var/log is persisted (hosts/darkhero/impermanence.nix), so the journal
   # grows without bound - 741 MB accumulated over the first four months. At
   # roughly 170 MB/month, 2G is about a year of retention.
-  services.journald.extraConfig = ''
-    SystemMaxUse=2G
-  '';
+  services.journald.settings.Journal.SystemMaxUse = "2G";
 
   services.pcscd.enable = true;
   # Restarting pcscd drops every open PC/SC session, which kills an in-flight
