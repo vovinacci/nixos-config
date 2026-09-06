@@ -126,7 +126,13 @@
     git.enable = false;
   };
 
-  programs.gpg.enable = true;
+  programs.gpg = {
+    enable = true;
+    # Route gpg through pcscd. scdaemon's built-in CCID driver claims the
+    # YubiKey's USB interface exclusively, which leaves pcscd with "No reader
+    # found" and breaks ykman piv and age-plugin-yubikey.
+    scdaemonSettings.disable-ccid = true;
+  };
 
   services.gpg-agent = {
     enable           = true;
