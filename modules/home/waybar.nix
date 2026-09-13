@@ -41,8 +41,7 @@
       #language,
       #tray,
       #custom-notification,
-      #custom-sleep,
-      #custom-lock {
+      #custom-power {
         padding: 0 10px;
         color: #cdd6f4;
         background-color: transparent;
@@ -184,11 +183,7 @@
         color: #cdd6f4;
       }
 
-      #custom-sleep {
-        color: #bac2de;
-      }
-
-      #custom-lock {
+      #custom-power {
         color: #f38ba8;
       }
 
@@ -211,7 +206,7 @@
 
       modules-left   = [ "sway/workspaces" "sway/mode" "custom/layout" "custom/layout-hints" "mpris" ];
       modules-center = [ "clock" ];
-      modules-right  = [ "privacy" "idle_inhibitor" "disk" "temperature" "cpu" "memory" "bluetooth" "pulseaudio" "network" "sway/language" "tray" "custom/notification" "custom/sleep" "custom/lock" ];
+      modules-right  = [ "privacy" "idle_inhibitor" "disk" "temperature" "cpu" "memory" "bluetooth" "pulseaudio" "network" "sway/language" "tray" "custom/notification" "custom/power" ];
 
       "sway/workspaces" = {
         disable-scroll = true;
@@ -262,15 +257,9 @@
         tooltip          = false;
       };
 
-      "custom/sleep" = {
-        format   = "⏾ ";
-        on-click = "setsid bash -c 'sleep 0.2; systemctl suspend'";
-        tooltip  = false;
-      };
-
-      "custom/lock" = {
+      "custom/power" = {
         format   = "⏻ ";
-        on-click = "setsid bash -c 'sleep 0.2; loginctl lock-session'";
+        on-click = "power-menu";
         tooltip  = false;
       };
 

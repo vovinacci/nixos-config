@@ -37,6 +37,19 @@ let
     ${pkgs.sway}/bin/swaymsg "[title=\"$title\"] scratchpad show"
   '';
 
+  # Lock is first so a stray Enter on the empty filter is harmless.
+  powerMenu = pkgs.writeShellScriptBin "power-menu" ''
+    choice=$(printf '%s\n' Lock Logout Sleep Hibernate Reboot "Power off" | ${pkgs.wofi}/bin/wofi --dmenu --prompt "Power")
+    case "$choice" in
+      Lock)        ${pkgs.systemd}/bin/loginctl lock-session ;;
+      Logout)      ${pkgs.sway}/bin/swaymsg exit ;;
+      Sleep)       ${pkgs.systemd}/bin/systemctl suspend ;;
+      Hibernate)   ${pkgs.systemd}/bin/systemctl hibernate ;;
+      Reboot)      ${pkgs.systemd}/bin/systemctl reboot ;;
+      "Power off") ${pkgs.systemd}/bin/systemctl poweroff ;;
+    esac
+  '';
+
   screenRec = pkgs.writeShellScriptBin "screen-rec" ''
     if ${pkgs.procps}/bin/pgrep -x wf-recorder >/dev/null; then
       ${pkgs.procps}/bin/pkill -INT -x wf-recorder
@@ -87,7 +100,7 @@ let
   '';
 in
 {
-  home.packages = with pkgs; [ cliphist wl-clip-persist swayr autotiling satty ddcutil wf-recorder layoutCycle layoutInfo layoutHints scratchpadPick screenRec ];
+  home.packages = with pkgs; [ cliphist wl-clip-persist swayr autotiling satty ddcutil wf-recorder layoutCycle layoutInfo layoutHints scratchpadPick screenRec powerMenu ];
 
   services.swayidle = {
     enable   = true;
@@ -181,7 +194,7 @@ in
         "${mod}+space"       = "exec ${pkgs.wofi}/bin/wofi --show drun";
         "${mod}+q"           = "kill";
         "${mod}+Shift+c"     = "reload";
-        "${mod}+Shift+e"     = "exec swaymsg exit";
+        "${mod}+Shift+e"     = "exec ${powerMenu}/bin/power-menu";
         "${mod}+ctrl+l"      = "exec loginctl lock-session";
         "${mod}+h"           = "focus left";
         "${mod}+j"           = "focus down";
