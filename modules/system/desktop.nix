@@ -4,7 +4,10 @@
   programs.sway = {
     enable = true;
     wrapperFeatures.gtk = true;
-    extraPackages = with pkgs; [ swaylock swayidle ];
+    # Empty on purpose: the upstream default (swaylock, swayidle, foot, wmenu,
+    # ...) would duplicate what home-manager's programs.swaylock and
+    # services.swayidle already install.
+    extraPackages = [ ];
   };
 
   xdg.portal = {
@@ -18,21 +21,19 @@
     # fight the upstream value.
   };
 
-  security.pam.services.swaylock = {};
+  # Screencast lifecycle is otherwise invisible: Electron apps (Slack) can stop
+  # sharing in their UI while the portal session stays open. exec_after fires
+  # only once every screencast has really ended, so a missing "ended"
+  # notification means the app leaked its session - `$mod+Shift+s` kills it.
+  xdg.portal.wlr.settings.screencast = {
+    exec_before = "${pkgs.libnotify}/bin/notify-send -a screencast 'Screen sharing started'";
+    exec_after  = "${pkgs.libnotify}/bin/notify-send -a screencast 'Screen sharing ended'";
+  };
 
   services.greetd = {
     enable = true;
     settings.default_session.command =
       "${pkgs.tuigreet}/bin/tuigreet --time --cmd sway";
-  };
-
-  # pipewire screen capture for WebRTC
-  services.pipewire.extraConfig.pipewire = {
-    "10-screencast" = {
-      "stream.properties" = {
-        "node.latency" = "1024/48000";
-      };
-    };
   };
 
   fonts.packages = with pkgs; [
@@ -80,18 +81,15 @@
 
   environment.systemPackages = with pkgs; [
     grim slurp wl-clipboard
-    polkit_gnome
     qt5.qtwayland
     qt6.qtwayland
-    udiskie
-    networkmanagerapplet
     apfs-fuse   # read encrypted/macOS APFS disks (FUSE, read-only, prompts for password)
   ];
 
   environment.sessionVariables = {
     NIXOS_OZONE_WL              = "1";
     _JAVA_AWT_WM_NONREPARENTING = "1";
-    QT_QPA_PLATFORM             = "wayland";
+    QT_QPA_PLATFORM             = "wayland;xcb";
     QT_QPA_PLATFORMTHEME        = "gtk3";
   };
 }

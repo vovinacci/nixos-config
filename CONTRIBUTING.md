@@ -82,13 +82,9 @@ imports = [
 ### Host-Specific Configuration
 
 Shared modules must not hardcode a particular machine - monitor names, refresh
-rates, and geographic coordinates belong in `hosts/<name>/`.
-
-Known outstanding violations. Do not add more; prefer fixing one if you are already
-editing the file:
-
-- `modules/home/sway.nix` pins output `DP-2` to `3840x2160@143.963Hz`
-- `modules/home/sway.nix` passes Kyiv coordinates to `wlsunset`
+rates, and geographic coordinates belong in `hosts/<name>/`. darkhero's output
+mode and `wlsunset` coordinates live in `hosts/darkhero/default.nix` under
+`home-manager.users.<name>` for this reason.
 
 ### Generated Files
 
@@ -140,8 +136,7 @@ these values rather than inventing hex codes:
 
 Everything except `base` is stock Catppuccin Mocha. `#1a1a2e` is this repo's own
 darker base, deliberately not Mocha's `#1e1e2e` - match the repo, not upstream
-Catppuccin. `modules/home/waybar.nix` is the one surface still using waybar's
-upstream stylesheet.
+Catppuccin.
 
 ## Commit Message Format
 

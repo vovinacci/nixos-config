@@ -29,7 +29,6 @@
     ripgrep fd bat bat-extras.batman eza fzf htop btop
     pciutils usbutils
     cdemu-client cdemu-daemon
-    pulseaudio
     yubikey-manager
     yubikey-personalization
     pcsc-tools

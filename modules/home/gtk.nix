@@ -5,44 +5,34 @@
       name = "Noto Sans";
       size = 12;
     };
+    # Community Catppuccin theme (Fausto-Korpsvart); the official catppuccin/gtk
+    # port was archived upstream in June 2024. Mocha is its default flavor.
     theme = {
-      name    = "catppuccin-mocha-blue-standard+default";
-      package = pkgs.catppuccin-gtk.override {
-        accents = [ "blue" ];
-        variant = "mocha";
+      name    = "Catppuccin-GTK-Blue-Dark";
+      package = pkgs.magnetic-catppuccin-gtk.override {
+        accent = [ "blue" ];
+        shade  = "dark";
       };
     };
     iconTheme = {
       name    = "Papirus-Dark";
       package = pkgs.papirus-icon-theme;
     };
-    cursorTheme = {
-      name    = "catppuccin-mocha-dark-cursors";
-      package = pkgs.catppuccin-cursors.mochaDark;
-      size    = 24;
-    };
+    # Also writes the org/gnome/desktop/interface dconf keys (color-scheme,
+    # gtk-theme, icon-theme, cursor-theme, cursor-size, font-name).
+    colorScheme = "dark";
   };
 
+  # Single source for the cursor: sets gtk.cursorTheme, XCURSOR_THEME/SIZE,
+  # and sway's seat cursor (greetd starts sway without the session variables).
   home.pointerCursor = {
     enable  = true;
     name    = "catppuccin-mocha-dark-cursors";
     package = pkgs.catppuccin-cursors.mochaDark;
     size    = 24;
-    gtk.enable = true;
-    x11.enable = true;
-  };
-
-  home.sessionVariables = {
-    XCURSOR_THEME = "catppuccin-mocha-dark-cursors";
-    XCURSOR_SIZE  = "24";
-  };
-
-  dconf.settings."org/gnome/desktop/interface" = {
-    color-scheme = "prefer-dark";
-    gtk-theme    = "catppuccin-mocha-blue-standard+default";
-    icon-theme   = "Papirus-Dark";
-    cursor-theme = "catppuccin-mocha-dark-cursors";
-    cursor-size  = 24;
+    gtk.enable  = true;
+    x11.enable  = true;
+    sway.enable = true;
   };
 
   programs.swaylock = {
@@ -82,9 +72,9 @@
       "application/pdf"       = "firefox.desktop";
       "image/png"             = "imv.desktop";
       "image/jpeg"            = "imv.desktop";
-      "video/mp4"             = "mpv.desktop";
-      "video/mkv"             = "mpv.desktop";
-      "audio/mpeg"            = "mpv.desktop";
+      "video/mp4"             = "vlc.desktop";
+      "video/x-matroska"      = "vlc.desktop";
+      "audio/mpeg"            = "vlc.desktop";
     };
   };
 }

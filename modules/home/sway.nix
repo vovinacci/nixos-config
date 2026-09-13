@@ -61,6 +61,32 @@ let
     fi
   '';
 
+  # Restarting the wlr portal backend ends every open screencast session,
+  # including one an app forgot to close after "Stop sharing".
+  screencastStop = pkgs.writeShellScriptBin "screencast-stop" ''
+    ${pkgs.systemd}/bin/systemctl --user restart xdg-desktop-portal-wlr.service
+    ${pkgs.libnotify}/bin/notify-send -a screencast "Screen sharing" "Portal restarted - all screencasts stopped"
+  '';
+
+  # Toggles the focused output to 2x so a shared screen stays readable for
+  # viewers on smaller displays. The mode is untouched, so the panel stays
+  # sharp and the capture size does not change mid-share. The previous scale
+  # is saved per output and restored on the next press.
+  shareScale = pkgs.writeShellScriptBin "share-scale" ''
+    read -r name scale <<< "$(${pkgs.sway}/bin/swaymsg -t get_outputs | ${pkgs.jq}/bin/jq -r '.[] | select(.focused) | "\(.name) \(.scale)"')"
+    [ -z "$name" ] && exit 1
+    saved="''${XDG_RUNTIME_DIR:-/tmp}/share-scale.$name"
+    if [ -f "$saved" ]; then
+      ${pkgs.sway}/bin/swaymsg output "$name" scale "$(cat "$saved")"
+      rm -f "$saved"
+      ${pkgs.libnotify}/bin/notify-send -a screencast "Share scale" "$name back to normal"
+    else
+      echo "$scale" > "$saved"
+      ${pkgs.sway}/bin/swaymsg output "$name" scale 2
+      ${pkgs.libnotify}/bin/notify-send -a screencast "Share scale" "$name at 2x for sharing"
+    fi
+  '';
+
   layoutInfo = pkgs.writeShellScriptBin "layout-info" ''
     data=$(${pkgs.sway}/bin/swaymsg -t get_tree | ${pkgs.jq}/bin/jq -r '
       ([recurse(.nodes[]?, .floating_nodes[]?) |
@@ -100,7 +126,50 @@ let
   '';
 in
 {
-  home.packages = with pkgs; [ cliphist wl-clip-persist swayr autotiling satty ddcutil wf-recorder layoutCycle layoutInfo layoutHints scratchpadPick screenRec powerMenu ];
+  home.packages = with pkgs; [ satty ddcutil wf-recorder layoutCycle layoutInfo layoutHints scratchpadPick screenRec screencastStop shareScale powerMenu ];
+
+  # Session daemons run as user services bound to the graphical session rather
+  # than as sway `exec`s: restarted on failure, logged to the journal, and
+  # stopped with the session. cliphist, wl-clip-persist and swayr install their
+  # own packages.
+  services.autotiling.enable      = true;
+  services.wl-clip-persist.enable = true;
+  services.polkit-gnome.enable    = true;
+  services.network-manager-applet.enable = true;
+  services.udiskie = {
+    enable = true;
+    tray   = "always";
+  };
+  services.cliphist = {
+    enable       = true;
+    # The untyped text watcher already stores images; the extra image watcher
+    # would record each image twice.
+    allowImages  = false;
+    extraOptions = [ "-max-items" "200" ];
+  };
+  programs.swayr = {
+    enable         = true;
+    systemd.enable = true;
+  };
+
+  # waybar only hosts StatusNotifierItems, not XEmbed icons. This makes the
+  # nm-applet and udiskie services pass --indicator / --appindicator.
+  xsession.preferStatusNotifierItems = true;
+
+  # services.cliphist watches only the regular clipboard; this keeps the
+  # primary selection in history as well.
+  systemd.user.services.cliphist-primary = {
+    Unit = {
+      Description = "Clipboard history (primary selection)";
+      PartOf      = [ config.wayland.systemd.target ];
+      After       = [ config.wayland.systemd.target ];
+    };
+    Service = {
+      ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --primary --watch ${pkgs.cliphist}/bin/cliphist -max-items 200 store";
+      Restart   = "on-failure";
+    };
+    Install.WantedBy = [ config.wayland.systemd.target ];
+  };
 
   services.swayidle = {
     enable   = true;
@@ -130,16 +199,6 @@ in
           xkb_options = "grp:ctrl_space_toggle,compose:ralt";
         };
       };
-      startup = [
-        { command = "${pkgs.swayr}/bin/swayrd"; }
-        { command = "${pkgs.autotiling}/bin/autotiling"; }
-        { command = "${pkgs.wl-clip-persist}/bin/wl-clip-persist --clipboard regular"; }
-        { command = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store -max-items 200"; }
-        { command = "${pkgs.wl-clipboard}/bin/wl-paste --primary --watch ${pkgs.cliphist}/bin/cliphist store -max-items 200"; }
-        { command = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"; }
-        { command = "${pkgs.udiskie}/bin/udiskie --tray"; }
-        { command = "${pkgs.networkmanagerapplet}/bin/nm-applet --indicator"; }
-      ];
       menu     = "${pkgs.wofi}/bin/wofi --show drun";
       fonts = {
         names = [ "JetBrainsMono Nerd Font" ];
@@ -213,6 +272,8 @@ in
         "${mod}+Shift+n"     = "exec ${pkgs.swaynotificationcenter}/bin/swaync-client -d -sw";
         "${mod}+r"           = "mode resize";
         "${mod}+Shift+r"     = "exec ${screenRec}/bin/screen-rec";
+        "${mod}+Shift+s"     = "exec ${screencastStop}/bin/screencast-stop";
+        "${mod}+Ctrl+s"      = "exec ${shareScale}/bin/share-scale";
         "${mod}+minus"       = "scratchpad show";
         "${mod}+ctrl+minus"  = "exec ${scratchpadPick}/bin/scratchpad-pick";
         "${mod}+Shift+minus" = "move scratchpad";
@@ -243,10 +304,10 @@ in
         "${mod}+Ctrl+p"      = "exec ${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\" ~/Pictures/$(date +%Y%m%d-%H%M%S).png";
         "--locked XF86MonBrightnessUp"   = "exec ${pkgs.ddcutil}/bin/ddcutil setvcp 10 + 10";
         "--locked XF86MonBrightnessDown" = "exec ${pkgs.ddcutil}/bin/ddcutil setvcp 10 - 10";
-        "--locked XF86AudioMute"        = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle";
-        "--locked XF86AudioLowerVolume" = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%";
-        "--locked XF86AudioRaiseVolume" = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%";
-        "--locked XF86AudioMicMute"     = "exec ${pkgs.pulseaudio}/bin/pactl set-source-mute @DEFAULT_SOURCE@ toggle";
+        "--locked XF86AudioMute"        = "exec ${pkgs.wireplumber}/bin/wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
+        "--locked XF86AudioLowerVolume" = "exec ${pkgs.wireplumber}/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-";
+        "--locked XF86AudioRaiseVolume" = "exec ${pkgs.wireplumber}/bin/wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+";
+        "--locked XF86AudioMicMute"     = "exec ${pkgs.wireplumber}/bin/wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle";
         "--locked XF86AudioPlay"        = "exec ${pkgs.playerctl}/bin/playerctl play-pause";
         "--locked XF86AudioNext"        = "exec ${pkgs.playerctl}/bin/playerctl next";
         "--locked XF86AudioPrev"        = "exec ${pkgs.playerctl}/bin/playerctl previous";
@@ -262,8 +323,6 @@ in
       for_window [app_id="nm-connection-editor"] floating enable
       for_window [class="jetbrains-idea" title="Welcome to IntelliJ IDEA"] floating enable
       output * bg #1a1a2e solid_color
-      exec ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
-      exec ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
     '';
   };
 }

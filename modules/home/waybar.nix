@@ -246,7 +246,7 @@
         format        = "{icon} {volume}%";
         format-muted  = "󰝟";
         format-icons  = { default = [ "󰕿" "󰖀" "󰕾" ]; };
-        on-click      = "${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle";
+        on-click      = "${pkgs.wireplumber}/bin/wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
       };
 
       network = {
