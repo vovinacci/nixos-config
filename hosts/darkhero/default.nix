@@ -1,4 +1,4 @@
-{ config, pkgs, username, ... }: {
+{ config, lib, pkgs, username, ... }: {
   imports = [
     ./hardware-configuration.nix
     ./impermanence.nix
@@ -20,16 +20,17 @@
   };
 
   boot.kernelPackages = pkgs.linuxPackages_zen;
-  boot.extraModulePackages = [ config.boot.kernelPackages.vhba ];
-  boot.kernelModules = [ "vhba" ];
 
-  # vhba ships no udev rule, so /dev/vhba_ctl defaults to root:root 0600 and the
-  # user cdemu-daemon cannot open it. Grant the cdrom group access.
-  services.udev.extraRules = ''
-    KERNEL=="vhba_ctl", SUBSYSTEM=="misc", GROUP="cdrom", MODE="0660"
-  '';
+  # ESP readable by root only. The generated fmask/dmask=0022 leave
+  # loader/random-seed world-readable (bootctl warns "security hole"), and
+  # nixos-generate-config copies whatever mask is mounted, so regenerating
+  # hardware-configuration.nix would not fix it.
+  fileSystems."/boot/efi".options = lib.mkForce [ "fmask=0077" "dmask=0077" ];
+
   boot.kernelParams = [
-    "rootdelay=20"
+    # The root filesystem is on a USB SSD; USB autosuspend can put the device
+    # or its port to sleep under the running system. Removable if the root
+    # filesystem moves off USB.
     "usbcore.autosuspend=-1"
     # Root SSD (Transcend ESD310C, 2174:2100) is a USB device. Forces BOT by
     # disabling UAS for this bridge.
@@ -74,9 +75,6 @@
   fileSystems."/nix".options     = [ "fatal_errors=panic" ];
   fileSystems."/home".options    = [ "fatal_errors=panic" ];
   fileSystems."/persist".options = [ "fatal_errors=panic" ];
-
-  boot.supportedFilesystems = [ "btrfs" ];
-  boot.initrd.supportedFilesystems = [ "btrfs" ];
 
   sops = {
     defaultSopsFile = ../../secrets/secrets.sops.yaml;
@@ -124,6 +122,13 @@
       enable    = true;
       latitude  = 50.4;   # Kyiv
       longitude = 30.5;
+    };
+
+    # waybar's default thermal_zone0 is "INT3400 Thermal", a constant 20 C on
+    # this board. coretemp's temp1 is the CPU package temperature.
+    programs.waybar.settings.mainBar.temperature = {
+      hwmon-path-abs = "/sys/devices/platform/coretemp.0/hwmon";
+      input-filename = "temp1_input";
     };
   };
 

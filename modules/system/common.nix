@@ -2,8 +2,14 @@
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
     auto-optimise-store = true;
-    trusted-users = [ "root" username "@wheel" ];
+    # root is already trusted by the nixpkgs default; the user is in wheel.
+    trusted-users = [ "@wheel" ];
   };
+
+  # Flake-only system: nixPath and the registry are pinned to the flake's
+  # nixpkgs, so the channel mechanism (and the root channel left over from
+  # installation) only adds a second, stale nixpkgs to NIX_PATH.
+  nix.channel.enable = false;
 
   programs.nh = {
     enable = true;
@@ -24,17 +30,31 @@
     "d /etc/nixos 0755 ${username} users -"
   ];
 
+  # Root-shell and rescue tooling only. ripgrep, fzf, bat and eza are owned by
+  # their home-manager programs.* modules.
   environment.systemPackages = with pkgs; [
     git curl wget neovim
-    ripgrep fd bat bat-extras.batman eza fzf htop btop
+    fd htop btop
     pciutils usbutils
-    cdemu-client cdemu-daemon
     yubikey-manager
     yubikey-personalization
     pcsc-tools
   ];
 
   programs.nix-ld.enable = true;
+
+  # Virtual CD/DVD drives: vhba module, vhba_ctl udev rule for the cdrom group,
+  # D-Bus activated cdemu-daemon user service, and the CLI client.
+  programs.cdemu = {
+    enable         = true;
+    gui            = false;
+    image-analyzer = false;
+  };
+
+  # Compressed RAM swap, used before the disk swap (priority 5 vs the disk's
+  # default negative priority). The disk swap sits on the root USB SSD, whose
+  # heat is the reason for the nix-daemon write cap in hosts/darkhero.
+  zramSwap.enable = true;
 
   services.fwupd.enable = true;
 
@@ -54,6 +74,11 @@
   services.openssh = {
     enable = true;
     settings.PasswordAuthentication = false;
+    # ed25519 only. The default list also has RSA, whose key is not persisted
+    # on the tmpfs root and so was regenerated on every boot.
+    hostKeys = [
+      { type = "ed25519"; path = "/etc/ssh/ssh_host_ed25519_key"; }
+    ];
   };
 
   security.sudo.wheelNeedsPassword = false;

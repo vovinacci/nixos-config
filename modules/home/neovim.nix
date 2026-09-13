@@ -4,10 +4,11 @@
 # No programs.neovim: it generates its own init.lua, which conflicts with
 # symlinking the whole config directory. Mason-installed binaries run via
 # nix-ld (enabled in modules/system/common.nix).
+#
+# The nvim binary and fd come from the system layer (root-shell tooling in
+# modules/system/common.nix); ripgrep from programs.ripgrep in dev.nix.
 { config, pkgs, ... }: {
   home.packages = with pkgs; [
-    neovim
-
     # LSP servers (found on PATH by nvim-lspconfig)
     lua-language-server
     nil
@@ -19,8 +20,6 @@
     jdt-language-server
 
     # tools
-    ripgrep
-    fd
     tree-sitter
   ];
 

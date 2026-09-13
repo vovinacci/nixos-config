@@ -45,7 +45,11 @@
     Unit = {
       Description = "Deploy SSH keys and config from SOPS bundle";
       After       = [ "sops-nix.service" ];
-      Wants       = [ "sops-nix.service" ];
+      # Requires: no deploy from a failed decrypt. PartOf: sops-nix restarts on
+      # every activation, and this re-runs with it, so a changed bundle is
+      # deployed on switch rather than at the next login.
+      Requires    = [ "sops-nix.service" ];
+      PartOf      = [ "sops-nix.service" ];
     };
     Service = {
       Type            = "oneshot";

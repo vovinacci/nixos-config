@@ -5,7 +5,7 @@
       init.defaultBranch = "main";
       "url \"git@github.com:\"".insteadOf = "https://github.com/";
       pull.rebase = true;
-      merge.conflictstyle = "diff3";
+      merge.conflictstyle = "zdiff3";
       diff.colorMoved      = "default";
       diff.algorithm       = "patience";
       diff.mnemonicprefix  = true;
@@ -99,7 +99,7 @@
       t               = "tag -n";
       contributors    = "shortlog --summary --numbered --email";
       recent-branches = "!git for-each-ref --count=15 --sort=-committerdate refs/heads/ --format='%(refname:short)'";
-      snapshot        = "!git stash save \"snapshot: $(date)\" && git stash apply stash@{0}";
+      snapshot        = "!git stash push -m \"snapshot: $(date)\" && git stash apply stash@{0}";
       snapshots       = "!git stash list --grep snapshot";
     };
     includes = [{ path = "~/.config/git/user"; }];
@@ -167,7 +167,6 @@
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     enableCompletion = true;
-    completionInit = "autoload -U compinit && compinit -C";
     historySubstringSearch.enable = true;
     history = {
       save        = 100000;
@@ -202,9 +201,6 @@
       export VI_MODE_SET_CURSOR=true
       export VI_MODE_RESET_PROMPT_ON_MODE_CHANGE=true
 
-      # show current kube context on the right
-      export RPS1='$(kubectx_prompt_info)'
-
       # run a command in every immediate subdirectory
       function run_in_subdirs() {
         local cmd="$@"
@@ -231,8 +227,8 @@
       # fzf-tab: disable zsh's own menu so fzf-tab can take over TAB completion
       zstyle ':completion:*' menu no
       # preview directory contents when completing cd / z
-      zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --icons $realpath'
-      zstyle ':fzf-tab:complete:z:*'  fzf-preview 'eza -1 --color=always --icons $realpath'
+      zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always --icons=auto $realpath'
+      zstyle ':fzf-tab:complete:z:*'  fzf-preview 'eza -1 --color=always --icons=auto $realpath'
       # accept current selection and trigger next completion with /
       zstyle ':fzf-tab:*' continuous-trigger '/'
 
@@ -244,11 +240,10 @@
       # restore plain '?' (must run after the atuin integration, order 2000)
       bindkey '?' self-insert
     '') ];
+    # ls/la/lt/lla come from programs.eza; its `eza` alias carries the icon
+    # and git flags, so these stay flag-free.
     shellAliases = {
-      ls  = "eza --icons";
-      ll  = "eza -la --git --icons";
-      la  = "eza -a --icons";
-      lt  = "eza --tree --icons";
+      ll  = "eza -la";
       cat = "bat --paging=never";
       man = "batman";
     };
@@ -264,7 +259,6 @@
         "history"
         "kind"
         "kubectl"
-        "kubectx"
         "minikube"
         "python"
         "sbt"
@@ -294,14 +288,23 @@
       fzf-tmux-url
       tmux-fzf
       vim-tmux-navigator
-      prefix-highlight
       {
         plugin = catppuccin;
         extraConfig = ''
           set -g @catppuccin_flavor 'mocha'
-          set -g @catppuccin_status_modules_right "prefix_highlight session date_time"
-          set -g @catppuccin_date_time_text "%d %b %Y %H:%M"
+          set -g @catppuccin_date_time_text " %d %b %Y %H:%M"
           set -g @catppuccin_window_status_style "rounded"
+        '';
+      }
+      # status-right is assembled here, between catppuccin (which defines the
+      # @catppuccin_status_* modules when it loads) and the plugins that
+      # rewrite status-right when they load: prefix-highlight replaces
+      # #{prefix_highlight}, and continuum (last) appends its save hook.
+      {
+        plugin = prefix-highlight;
+        extraConfig = ''
+          set -g status-right-length 100
+          set -g status-right "#{prefix_highlight}#{E:@catppuccin_status_session}#{E:@catppuccin_status_date_time}"
         '';
       }
       {
@@ -328,7 +331,6 @@
 
       # window numbering
       set -g renumber-windows on
-      setw -g pane-base-index 1
 
       # intuitive splits (open in current path)
       bind | split-window -h -c "#{pane_current_path}"
@@ -362,18 +364,26 @@
     '';
   };
 
-  home.file.".ssh/config".text = ''
-    ControlMaster auto
-    ControlPath /tmp/%r@%h:%p
-
-    Host *
-      AddKeysToAgent yes
-      Compression yes
-
-    Include ~/.ssh/config.d/*
-  '';
+  # Include first, `Host *` last: ssh takes the first value it sees, so host
+  # blocks from the SOPS bundle (config.d) can override these defaults.
+  programs.ssh = {
+    enable              = true;
+    enableDefaultConfig = false;
+    includes            = [ "~/.ssh/config.d/*" ];
+    settings."*" = {
+      # "no": with gpg-agent as the SSH agent, adding a key re-encrypts it into
+      # ~/.gnupg/private-keys-v1.d permanently, outside the SOPS bundle.
+      AddKeysToAgent = "no";
+      Compression    = true;
+      ControlMaster  = "auto";
+      # %C is a hash of the connection; the directory is private to the user.
+      ControlPath    = "~/.ssh/control/%C";
+      ControlPersist = "10m";
+    };
+  };
 
   home.file.".ssh/config.d/.keep".text = "";
+  home.file.".ssh/control/.keep".text  = "";
 
   programs.fzf = {
     enable = true;
@@ -402,8 +412,18 @@
       # Enter edits the line first instead of running it immediately (safer);
       # press Enter again to run. Set true to run on first Enter.
       enter_accept = false;
-      filter_mode_shell_up_key_binding = "session";
     };
+  };
+
+  programs.eza = {
+    enable = true;
+    icons  = "auto";
+    git    = true;
+  };
+
+  programs.bat = {
+    enable        = true;
+    extraPackages = [ pkgs.bat-extras.batman ];
   };
 
   home.sessionVariables = {

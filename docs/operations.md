@@ -68,11 +68,10 @@ nh os rollback
 
 Boot into the desired generation from the systemd-boot menu (appears on startup).
 
-From a running system, switch the profile pointer and activate:
+From a running system:
 
 ```shell
-nix-env -p /nix/var/nix/profiles/system --switch-generation <N>
-/nix/var/nix/profiles/system/bin/switch-to-configuration switch
+nh os rollback --to <N>
 ```
 
 Replace `<N>` with the generation number from the list above.
@@ -100,26 +99,31 @@ nixosConfigurations = {
   darkhero = mkSystem { ... };
 
   newhostname = mkSystem {
-    system   = "x86_64-linux";
     hostname = "newhostname";
+    username = "vovin";
     profiles = [ ./profiles/workstation.nix ];
   };
 };
 ```
 
-### 3. Derive the Host Age Key
+There is no `system` argument: the platform comes from
+`nixpkgs.hostPlatform` in the generated `hardware-configuration.nix`.
 
-On the new machine, extract the age public key from the SSH host key:
+### 3. Create the Host Age Key
+
+The host decrypts with a dedicated age key, not one derived from its SSH host
+key (`sops.age.sshKeyPaths = []` in `hosts/darkhero/default.nix`). On the new
+machine, generate it on a filesystem that is mounted in stage 1, and print its
+public key:
 
 ```shell
-nix-shell -p ssh-to-age --run \
-  'ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub'
+sudo mkdir -p /persist/var/lib/sops-nix
+sudo nix shell nixpkgs#age -c age-keygen -o /persist/var/lib/sops-nix/key.txt
+sudo chmod 600 /persist/var/lib/sops-nix/key.txt
+sudo nix shell nixpkgs#age -c age-keygen -y /persist/var/lib/sops-nix/key.txt
 ```
 
-The host age key file must be placed at the path configured in
-`hosts/<name>/default.nix` (`sops.age.keyFile`). Match the path used for
-`darkhero` (`/persist/var/lib/sops-nix/key.txt`) or choose a new persistent path
-and update the config accordingly.
+`sops.age.keyFile` in `hosts/<name>/default.nix` must point at this file.
 
 ### 4. Add the Host Key to .sops.yaml and Re-encrypt
 
@@ -176,14 +180,15 @@ host. Useful for verifying module syntax, service startup, and basic behaviour.
 
 ### Manual
 
-Delete all unreferenced store paths and remove old generations:
+Remove old generations and collect unreferenced store paths, with the same
+retention as the automatic run:
 
 ```shell
-nix-collect-garbage -d
+nh clean all --keep 5 --keep-since 30d
 ```
 
-Run this periodically when disk space is low. The `-d` flag removes old generations
-before collecting.
+Avoid `nix-collect-garbage -d`: it deletes every old generation, leaving nothing
+to roll back to.
 
 ### Automatic
 

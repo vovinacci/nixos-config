@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, osConfig, pkgs, lib, ... }:
 
 let
   layoutCycle = pkgs.writeShellScriptBin "layout-cycle" ''
@@ -178,8 +178,8 @@ in
          command = "${pkgs.procps}/bin/pgrep -x swaylock || ${pkgs.swaylock}/bin/swaylock -f";
       }
       { timeout = 600;
-        command        = "${pkgs.sway}/bin/swaymsg \"output * dpms off\"";
-        resumeCommand  = "${pkgs.sway}/bin/swaymsg \"output * dpms on\"";
+        command        = "${pkgs.sway}/bin/swaymsg \"output * power off\"";
+        resumeCommand  = "${pkgs.sway}/bin/swaymsg \"output * power on\"";
       }
     ];
     events = {
@@ -190,21 +190,34 @@ in
 
   wayland.windowManager.sway = {
     enable = true;
-    systemd.enable = true;
+    # This is the sway the session runs (programs.sway.package is null on the
+    # NixOS side), so the GTK/GSettings wrapper belongs here.
+    wrapperFeatures.gtk = true;
+    systemd = {
+      enable       = true;
+      # Sway runs no XDG autostart itself; this starts entries such as
+      # blueman-applet through systemd's xdg-desktop-autostart.target.
+      xdgAutostart = true;
+    };
     config = {
       modifier = "Mod4";
+      # Same layout and options as the console and X11 (services.xserver.xkb
+      # in modules/system/common.nix), which sway does not read itself.
       input = {
         "*" = {
-          xkb_layout  = "us,ua";
-          xkb_options = "grp:ctrl_space_toggle,compose:ralt";
+          xkb_layout  = osConfig.services.xserver.xkb.layout;
+          xkb_options = osConfig.services.xserver.xkb.options;
         };
       };
-      menu     = "${pkgs.wofi}/bin/wofi --show drun";
       fonts = {
         names = [ "JetBrainsMono Nerd Font" ];
         size  = 12.0;
       };
-      window.border = 2;
+      window = {
+        border   = 2;
+        # pixel borders; tabbed and stacked containers still show titles.
+        titlebar = false;
+      };
       colors = {
         focused = {
           border      = "#89b4fa";
@@ -314,8 +327,7 @@ in
       };
     };
     extraConfig = ''
-      for_window [app_id=".*"] inhibit_idle fullscreen
-      for_window [class=".*"] inhibit_idle fullscreen
+      for_window [all] inhibit_idle fullscreen
       for_window [app_id="udiskie"] floating enable
       for_window [app_id="Slack" title="^Huddle:"] floating enable
       for_window [app_id=".blueman-manager-wrapped"] floating enable

@@ -42,11 +42,12 @@
     ...
   }:
   let
-    mkSystem = { system, hostname, username, profiles ? [] }:
+    # The platform comes from each host's hardware-configuration.nix
+    # (nixpkgs.hostPlatform); nixosSystem's `system` argument is legacy.
+    mkSystem = { hostname, username, profiles ? [] }:
       nixpkgs.lib.nixosSystem {
-        inherit system;
         specialArgs = {
-          inherit impermanence sops-nix nix-index-database username;
+          inherit sops-nix nix-index-database username;
         };
         modules = [
           ./hosts/${hostname}/default.nix
@@ -60,7 +61,6 @@
   in {
     nixosConfigurations = {
       darkhero = mkSystem {
-        system   = "x86_64-linux";
         hostname = "darkhero";
         username = "vovin";
         profiles = [ ./profiles/workstation.nix ];

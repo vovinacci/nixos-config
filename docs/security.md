@@ -15,7 +15,8 @@ All three keys are stored as age public keys in `.sops.yaml`. Any of the three
 corresponding private keys can decrypt any file matching `secrets/*.sops.yaml`.
 
 **System secrets** (decrypted by sops-nix at boot) land in `/run/secrets/<name>`.
-**Home-manager secrets** (decrypted by sops-nix at login) land in `/run/user/1000/secrets/<name>`.
+**Home-manager secrets** (decrypted by sops-nix at login and on every switch) land in
+`~/.config/sops-nix/secrets/<name>`, a symlink into `/run/user/1000/secrets.d/`.
 
 ### Current Secret Files
 
@@ -38,7 +39,8 @@ sops secrets/ssh.sops.yaml
 SOPS decrypts to a temp file, opens `$EDITOR`, then re-encrypts on save.
 
 `ssh_bundle` is a shell script. Edit it carefully - it is executed by a systemd user
-service (`ssh-bundle.service`) on every login to deploy keys and SSH `config.d` files.
+service (`ssh-bundle.service`) at login, and again whenever sops-nix re-decrypts on a
+switch, to deploy keys and SSH `config.d` files.
 
 ### Adding a New Secret Key to an Existing File
 
@@ -89,12 +91,12 @@ sops.secrets.my_secret = { neededForUsers = true; };
 sops.secrets.my_secret = {
   path = "${config.home.homeDirectory}/.config/myapp/secret";
 };
-# Or leave path unset - defaults to /run/user/1000/secrets/my_secret
+# Or leave path unset - defaults to ~/.config/sops-nix/secrets/my_secret
 ```
 
 ### Note: SSH Authorised Keys
 
-Secrets decrypted at runtime land under `/run/secrets/` or `/run/user/1000/secrets/`.
+Secrets decrypted at runtime land under `/run/secrets/` or `/run/user/1000/secrets.d/`.
 These paths do not exist during early boot when `openssh` reads `authorizedKeys`.
 **Keep SSH public keys inline** in `profiles/workstation.nix` rather than referencing
 a SOPS secret path.
@@ -126,15 +128,20 @@ YubiKey.
 
 ## Key Rotation: Host Replaced
 
-1. On the new machine, derive the age public key from the new SSH host key:
+1. On the new machine, generate the host age key and print its public key. The
+   config decrypts with this dedicated key (`sops.age.keyFile`), not with the
+   SSH host key (`sops.age.sshKeyPaths = []`), so an `ssh-to-age` recipient
+   would not work:
    ```shell
-   nix-shell -p ssh-to-age --run \
-     'ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub'
+   sudo mkdir -p /persist/var/lib/sops-nix
+   sudo nix shell nixpkgs#age -c age-keygen -o /persist/var/lib/sops-nix/key.txt
+   sudo chmod 600 /persist/var/lib/sops-nix/key.txt
+   sudo nix shell nixpkgs#age -c age-keygen -y /persist/var/lib/sops-nix/key.txt
    ```
 
-2. Generate and place a new age key at `/persist/var/lib/sops-nix/key.txt`
-   (or use the SSH-derived key if you prefer; adjust `sops.age.keyFile` and
-   `sops.age.sshKeyPaths` in `hosts/<name>/default.nix` accordingly).
+2. Re-encrypt from a machine that can still decrypt (the YubiKey or user key)
+   before the new host's first boot - it cannot decrypt the password hash
+   until its key is a recipient.
 
 3. Update `.sops.yaml` - replace `host_darkhero_persist` with the new public key.
 

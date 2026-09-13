@@ -1,11 +1,8 @@
 { config, pkgs, ... }: {
   hardware.bluetooth = {
     enable = true;
-    powerOnBoot = true;
-    settings.General = {
-      Enable = "Source,Sink,Media,Socket";
-      Experimental = true;
-    };
+    # Experimental exposes battery levels of connected devices over D-Bus.
+    settings.General.Experimental = true;
   };
   services.blueman.enable = true;
 }

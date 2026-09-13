@@ -10,7 +10,6 @@
       control-center-margin-right  = 8;
       control-center-margin-left   = 8;
       notification-window-width = 380;
-      notification-icon-size    = 48;
       notification-body-image-height = 100;
       notification-body-image-width  = 200;
       timeout          = 5;
@@ -33,6 +32,10 @@
       };
     };
     style = ''
+      /* Replaces the deprecated notification-icon-size setting. */
+      :root {
+        --notification-icon-size: 48px;
+      }
       * {
         font-family: "JetBrainsMono Nerd Font";
         font-size: 14px;

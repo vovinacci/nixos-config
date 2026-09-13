@@ -99,9 +99,12 @@ explaining what must not be re-added.
 A workaround in this repo states three things: *what is broken upstream*, *why this
 fixes it*, and *when it can be removed*. Existing examples to follow:
 
-- `hosts/darkhero/default.nix` - vhba udev rule, USB storage quirk
+- `hosts/darkhero/default.nix` - USB storage quirk, nix-daemon write-bandwidth cap
 - `modules/home/common.nix` - `set-SSH_AUTH_SOCK` dependency cycle, atuin `?` rebind
-- `modules/system/desktop.nix` - udisks polkit rule, FUSE `allow_other`
+
+Local policy (the udisks polkit rule and FUSE `allow_other` in
+`modules/system/desktop.nix`) is not a workaround - it has no upstream defect
+to wait out - but still carries a comment saying why it exists.
 
 **Never delete a commented workaround because it looks obsolete.** Verify upstream
 first: read the module source under `/nix/store/*-source/`, or run the tool and

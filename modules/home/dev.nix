@@ -22,7 +22,6 @@
     dos2unix
     rename
     wdiff
-    diffutils
     tree
     watch
     socat
@@ -121,7 +120,6 @@
     # misc
     lynx
     w3m
-    wireshark
     postman
     keybase
     winbox
@@ -141,7 +139,7 @@
     ];
   };
 
-  home.sessionVariables.GOPATH = "${config.home.homeDirectory}/go";
+  # GOPATH is Go's default ~/go; only its bin directory needs to be on PATH.
   home.sessionPath = [
     "${config.home.homeDirectory}/go/bin"
     "${config.home.homeDirectory}/.local/bin"

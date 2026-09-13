@@ -1,6 +1,9 @@
 { config, pkgs, ... }: {
   programs.ghostty = {
     enable = true;
+    # Terminals are started directly by sway ($mod+Return), not through the
+    # D-Bus activated service, which only produced a duplicate-name warning.
+    systemd.enable = false;
     settings = {
       theme = "Catppuccin Mocha";
 
@@ -13,8 +16,6 @@
       window-padding-y = 12;
       window-padding-balance = true;
 
-      quit-after-last-window-closed = true;
-      quit-after-last-window-closed-delay = 0;
       confirm-close-surface = false;
       copy-on-select = "clipboard";
       mouse-hide-while-typing = true;
