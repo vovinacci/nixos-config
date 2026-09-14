@@ -79,6 +79,14 @@ imports = [
 ];
 ```
 
+### Sway Key Bindings
+
+Add or change bindings only in the `keyBindings` / `windowModeBindings` lists at
+the top of `modules/home/sway.nix`, as `bind key description command`. Sway's
+keybindings, the window mode, and the searchable key help (`$mod+/`) are all
+generated from those lists, so every binding needs a description, written in the
+words you would search for. Duplicate keys fail evaluation.
+
 ### Host-Specific Configuration
 
 Shared modules must not hardcode a particular machine - monitor names, refresh

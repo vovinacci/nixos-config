@@ -74,9 +74,134 @@ let
   # The mode's name is its key map: waybar's sway/mode module displays it
   # while the mode is active.
   windowMode = "window: h/l/k/j half · y/u/b/n quarter · 1/2/3 third · ⇧1/⇧3 two-thirds · f max · c center · r restore · t tabs · s stack · e split";
+
+  # Key bindings, each with its description, in one place. Sway's
+  # keybindings, the window mode, and the key help ($mod+/) are all generated
+  # from these lists, so a binding cannot exist without a description and the
+  # help cannot drift from the config (the model of niri's hotkey overlay and
+  # which-key).
+  mod  = "Mod4";
+  bind = key: desc: cmd: { inherit key desc cmd; };
+  snap = action: "mode default; exec ${windowSnap}/bin/window-snap ${action}";
+  shot = "${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\"";
+  pic  = "~/Pictures/$(date +%Y%m%d-%H%M%S).png";
+
+  keyBindings = [
+    (bind "${mod}+Return"      "Terminal (Ghostty)"                    "exec ${pkgs.ghostty}/bin/ghostty")
+    (bind "${mod}+space"       "App launcher"                          "exec ${pkgs.wofi}/bin/wofi --show drun")
+    (bind "${mod}+q"           "Close window"                          "kill")
+    (bind "${mod}+Shift+c"     "Reload sway config"                    "reload")
+    (bind "${mod}+Shift+e"     "Power menu: lock, log out, sleep, reboot, power off" "exec ${powerMenu}/bin/power-menu")
+    (bind "${mod}+Ctrl+l"      "Lock screen"                           "exec loginctl lock-session")
+    (bind "${mod}+h"           "Focus left"                            "focus left")
+    (bind "${mod}+j"           "Focus down"                            "focus down")
+    (bind "${mod}+k"           "Focus up"                              "focus up")
+    (bind "${mod}+l"           "Focus right"                           "focus right")
+    (bind "Alt+Tab"            "Next window on this workspace"         "exec ${pkgs.swayr}/bin/swayr next-window current-workspace")
+    (bind "Alt+Shift+Tab"      "Previous window on this workspace"     "exec ${pkgs.swayr}/bin/swayr prev-window current-workspace")
+    (bind "${mod}+Shift+h"     "Move window left"                      "move left")
+    (bind "${mod}+Shift+j"     "Move window down"                      "move down")
+    (bind "${mod}+Shift+k"     "Move window up"                        "move up")
+    (bind "${mod}+Shift+l"     "Move window right"                     "move right")
+    (bind "${mod}+w"           "Window mode: snap halves, thirds, quarters; tabs, stack, split" "mode \"${windowMode}\"")
+    (bind "${mod}+f"           "Fullscreen"                            "fullscreen toggle")
+    (bind "${mod}+Shift+f"     "Float or tile window"                  "floating toggle")
+    # focus left/right never crosses between the tiling and floating layers;
+    # this is the only keyboard way from one to the other.
+    (bind "${mod}+Shift+space" "Focus between tiled and floating windows" "focus mode_toggle")
+    (bind "${mod}+r"           "Resize mode: h/j/k/l or arrows, Esc to leave" "mode resize")
+    (bind "${mod}+n"           "Notification centre"                   "exec ${pkgs.swaynotificationcenter}/bin/swaync-client -t -sw")
+    (bind "${mod}+Shift+n"     "Do not disturb"                        "exec ${pkgs.swaynotificationcenter}/bin/swaync-client -d -sw")
+    (bind "${mod}+minus"       "Scratchpad: show or cycle"             "scratchpad show")
+    (bind "${mod}+Ctrl+minus"  "Scratchpad: pick a window"             "exec ${scratchpadPick}/bin/scratchpad-pick")
+    (bind "${mod}+Shift+minus" "Scratchpad: send window there"         "move scratchpad")
+    (bind "${mod}+Shift+v"     "Clipboard history"                     "exec ${pkgs.cliphist}/bin/cliphist list | ${pkgs.wofi}/bin/wofi --dmenu | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy")
+    (bind "${mod}+p"           "Screenshot region: annotate, save or copy (satty)" "exec ${shot} - | ${pkgs.satty}/bin/satty --filename - --output-filename ${pic} --early-exit --copy-command ${pkgs.wl-clipboard}/bin/wl-copy")
+    (bind "${mod}+Shift+p"     "Screenshot region to clipboard"        "exec ${shot} - | ${pkgs.wl-clipboard}/bin/wl-copy")
+    (bind "${mod}+Ctrl+p"      "Screenshot region to ~/Pictures"       "exec ${shot} ${pic}")
+    (bind "${mod}+Shift+r"     "Screen recording: start or stop (region, ~/Videos)" "exec ${screenRec}/bin/screen-rec")
+    (bind "${mod}+Shift+s"     "Stop all screen sharing"               "exec ${screencastStop}/bin/screencast-stop")
+    (bind "${mod}+Ctrl+s"      "Screen-share scale: toggle 2x"         "exec ${shareScale}/bin/share-scale")
+    (bind "--locked XF86MonBrightnessUp"   "Brightness up"              "exec ${pkgs.ddcutil}/bin/ddcutil setvcp 10 + 10")
+    (bind "--locked XF86MonBrightnessDown" "Brightness down"            "exec ${pkgs.ddcutil}/bin/ddcutil setvcp 10 - 10")
+    (bind "--locked XF86AudioMute"         "Mute audio"                 "exec ${pkgs.wireplumber}/bin/wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
+    (bind "--locked XF86AudioLowerVolume"  "Volume down"                "exec ${pkgs.wireplumber}/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-")
+    (bind "--locked XF86AudioRaiseVolume"  "Volume up"                  "exec ${pkgs.wireplumber}/bin/wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+")
+    (bind "--locked XF86AudioMicMute"      "Mute microphone"            "exec ${pkgs.wireplumber}/bin/wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle")
+    (bind "--locked XF86AudioPlay"         "Play or pause media"        "exec ${pkgs.playerctl}/bin/playerctl play-pause")
+    (bind "--locked XF86AudioNext"         "Next track"                 "exec ${pkgs.playerctl}/bin/playerctl next")
+    (bind "--locked XF86AudioPrev"         "Previous track"             "exec ${pkgs.playerctl}/bin/playerctl previous")
+  ] ++ lib.concatMap (n:
+    let ws = toString n; key = if n == 10 then "0" else ws; in [
+      (bind "${mod}+${key}"       "Go to workspace ${ws}"          "workspace number ${ws}")
+      (bind "${mod}+Shift+${key}" "Move window to workspace ${ws}" "move container to workspace number ${ws}")
+    ]) (lib.range 1 10);
+
+  # One key after $mod+w, then back to the default mode.
+  windowModeBindings = [
+    (bind "h"         "Snap: left half"            (snap "left"))
+    (bind "l"         "Snap: right half"           (snap "right"))
+    (bind "k"         "Snap: top half"             (snap "top"))
+    (bind "j"         "Snap: bottom half"          (snap "bottom"))
+    (bind "y"         "Snap: top-left quarter"     (snap "top-left"))
+    (bind "u"         "Snap: top-right quarter"    (snap "top-right"))
+    (bind "b"         "Snap: bottom-left quarter"  (snap "bottom-left"))
+    (bind "n"         "Snap: bottom-right quarter" (snap "bottom-right"))
+    (bind "1"         "Snap: left third"           (snap "left-third"))
+    (bind "2"         "Snap: centre third"         (snap "center-third"))
+    (bind "3"         "Snap: right third"          (snap "right-third"))
+    (bind "Shift+1"   "Snap: left two-thirds"      (snap "left-two-thirds"))
+    (bind "Shift+3"   "Snap: right two-thirds"     (snap "right-two-thirds"))
+    (bind "f"         "Snap: maximise"             (snap "maximize"))
+    (bind "Return"    "Snap: maximise"             (snap "maximize"))
+    (bind "c"         "Snap: centre"               (snap "center"))
+    (bind "r"         "Snap: restore"              (snap "restore"))
+    (bind "BackSpace" "Snap: restore"              (snap "restore"))
+    (bind "t"         "Layout: tabbed"             "mode default; layout tabbed")
+    (bind "s"         "Layout: stacking"           "mode default; layout stacking")
+    (bind "e"         "Layout: toggle split direction" "mode default; layout toggle split")
+    (bind "Escape"    "Leave window mode"          "mode default")
+  ];
+
+  toBindings = bs:
+    let keys = map (b: b.key) bs; in
+    assert lib.assertMsg (lib.length (lib.unique keys) == lib.length keys)
+      "sway.nix: duplicate key in a binding list";
+    lib.listToAttrs (map (b: lib.nameValuePair b.key b.cmd) bs);
+
+  # Rows of the key help: label, description, command. The help binding
+  # itself is not listed (its command would have to contain this file).
+  prettyKey = lib.replaceStrings [ "--locked " "--to-code " "Mod4" ] [ "" "" "Super" ];
+  keyHelpData = pkgs.writeText "sway-key-help.tsv" (lib.concatMapStrings
+    (r: "${r.label}\t${r.desc}\t${r.cmd}\n")
+    (map (b: b // { label = prettyKey b.key; }) keyBindings
+      ++ map (b: b // { label = "Super+W, ${b.key}"; })
+           (lib.filter (b: b.cmd != "mode default") windowModeBindings)));
+
+  # The launcher's own style plus a monospace font, so the key column lines up.
+  keyHelpStyle = pkgs.writeText "key-help.css" (config.xdg.configFile."wofi/style.css".text + ''
+    #text { font-family: "JetBrainsMono Nerd Font", monospace; }
+  '');
+
+  # Fuzzy search over keys and descriptions; Enter runs the selected binding.
+  keyHelp = pkgs.writeShellScriptBin "key-help" ''
+    declare -A command
+    rows=()
+    while IFS=$'\t' read -r label desc cmd; do
+      row=$(printf '%-26s %s' "$label" "$desc")
+      rows+=("$row")
+      command["$row"]=$cmd
+    done < ${keyHelpData}
+
+    choice=$(printf '%s\n' "''${rows[@]}" | ${pkgs.wofi}/bin/wofi --dmenu \
+      --prompt "Key or action" --insensitive --matching fuzzy \
+      --cache-file /dev/null --width 50% --lines 24 --style ${keyHelpStyle}) || exit 0
+    [ -n "''${command[$choice]:-}" ] && ${pkgs.sway}/bin/swaymsg -q -- "''${command[$choice]}"
+  '';
+  helpBinding = bind "--to-code ${mod}+slash" "Key help" "exec ${keyHelp}/bin/key-help";
 in
 {
-  home.packages = with pkgs; [ satty ddcutil wf-recorder windowSnap scratchpadPick screenRec screencastStop shareScale powerMenu ];
+  home.packages = with pkgs; [ satty ddcutil wf-recorder windowSnap keyHelp scratchpadPick screenRec screencastStop shareScale powerMenu ];
 
   # Session daemons run as user services bound to the graphical session rather
   # than as sway `exec`s: restarted on failure, logged to the journal, and
@@ -212,99 +337,11 @@ in
       };
       bars = [];
       focus.followMouse = false;
-      # One key after $mod+w, then back to the default mode.
+      # Generated from the binding lists at the top of this file.
       modes = lib.mkOptionDefault {
-        ${windowMode} = let snap = a: "mode default; exec ${windowSnap}/bin/window-snap ${a}"; in {
-          "h"         = snap "left";
-          "l"         = snap "right";
-          "k"         = snap "top";
-          "j"         = snap "bottom";
-          "y"         = snap "top-left";
-          "u"         = snap "top-right";
-          "b"         = snap "bottom-left";
-          "n"         = snap "bottom-right";
-          "1"         = snap "left-third";
-          "2"         = snap "center-third";
-          "3"         = snap "right-third";
-          "Shift+1"   = snap "left-two-thirds";
-          "Shift+3"   = snap "right-two-thirds";
-          "f"         = snap "maximize";
-          "Return"    = snap "maximize";
-          "c"         = snap "center";
-          "r"         = snap "restore";
-          "BackSpace" = snap "restore";
-          "t"         = "mode default; layout tabbed";
-          "s"         = "mode default; layout stacking";
-          "e"         = "mode default; layout toggle split";
-          "Escape"    = "mode default";
-        };
+        ${windowMode} = toBindings windowModeBindings;
       };
-      keybindings = let mod = "Mod4"; in {
-        "${mod}+Return"      = "exec ${pkgs.ghostty}/bin/ghostty";
-        "${mod}+space"       = "exec ${pkgs.wofi}/bin/wofi --show drun";
-        "${mod}+q"           = "kill";
-        "${mod}+Shift+c"     = "reload";
-        "${mod}+Shift+e"     = "exec ${powerMenu}/bin/power-menu";
-        "${mod}+ctrl+l"      = "exec loginctl lock-session";
-        "${mod}+h"           = "focus left";
-        "${mod}+j"           = "focus down";
-        "${mod}+k"           = "focus up";
-        "${mod}+l"           = "focus right";
-        "Alt+Tab"            = "exec ${pkgs.swayr}/bin/swayr next-window current-workspace";
-        "Alt+Shift+Tab"      = "exec ${pkgs.swayr}/bin/swayr prev-window current-workspace";
-        "${mod}+Shift+h"     = "move left";
-        "${mod}+Shift+j"     = "move down";
-        "${mod}+Shift+k"     = "move up";
-        "${mod}+Shift+l"     = "move right";
-        "${mod}+w"           = "mode \"${windowMode}\"";
-        "${mod}+f"           = "fullscreen toggle";
-        "${mod}+n"           = "exec ${pkgs.swaynotificationcenter}/bin/swaync-client -t -sw";
-        "${mod}+Shift+n"     = "exec ${pkgs.swaynotificationcenter}/bin/swaync-client -d -sw";
-        "${mod}+r"           = "mode resize";
-        "${mod}+Shift+r"     = "exec ${screenRec}/bin/screen-rec";
-        "${mod}+Shift+s"     = "exec ${screencastStop}/bin/screencast-stop";
-        "${mod}+Ctrl+s"      = "exec ${shareScale}/bin/share-scale";
-        "${mod}+minus"       = "scratchpad show";
-        "${mod}+ctrl+minus"  = "exec ${scratchpadPick}/bin/scratchpad-pick";
-        "${mod}+Shift+minus" = "move scratchpad";
-        "${mod}+Shift+f"     = "floating toggle";
-        # focus left/right never crosses between the tiling and floating
-        # layers; this is the only keyboard way from one to the other.
-        "${mod}+Shift+space" = "focus mode_toggle";
-        "${mod}+1"           = "workspace number 1";
-        "${mod}+2"           = "workspace number 2";
-        "${mod}+3"           = "workspace number 3";
-        "${mod}+4"           = "workspace number 4";
-        "${mod}+5"           = "workspace number 5";
-        "${mod}+6"           = "workspace number 6";
-        "${mod}+7"           = "workspace number 7";
-        "${mod}+8"           = "workspace number 8";
-        "${mod}+9"           = "workspace number 9";
-        "${mod}+0"           = "workspace number 10";
-        "${mod}+Shift+1"     = "move container to workspace number 1";
-        "${mod}+Shift+2"     = "move container to workspace number 2";
-        "${mod}+Shift+3"     = "move container to workspace number 3";
-        "${mod}+Shift+4"     = "move container to workspace number 4";
-        "${mod}+Shift+5"     = "move container to workspace number 5";
-        "${mod}+Shift+6"     = "move container to workspace number 6";
-        "${mod}+Shift+7"     = "move container to workspace number 7";
-        "${mod}+Shift+8"     = "move container to workspace number 8";
-        "${mod}+Shift+9"     = "move container to workspace number 9";
-        "${mod}+Shift+0"     = "move container to workspace number 10";
-        "${mod}+Shift+v"     = "exec ${pkgs.cliphist}/bin/cliphist list | ${pkgs.wofi}/bin/wofi --dmenu | ${pkgs.cliphist}/bin/cliphist decode | ${pkgs.wl-clipboard}/bin/wl-copy";
-        "${mod}+p"           = "exec ${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\" - | ${pkgs.satty}/bin/satty --filename - --output-filename ~/Pictures/$(date +%Y%m%d-%H%M%S).png --early-exit --copy-command ${pkgs.wl-clipboard}/bin/wl-copy";
-        "${mod}+Shift+p"     = "exec ${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\" - | ${pkgs.wl-clipboard}/bin/wl-copy";
-        "${mod}+Ctrl+p"      = "exec ${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\" ~/Pictures/$(date +%Y%m%d-%H%M%S).png";
-        "--locked XF86MonBrightnessUp"   = "exec ${pkgs.ddcutil}/bin/ddcutil setvcp 10 + 10";
-        "--locked XF86MonBrightnessDown" = "exec ${pkgs.ddcutil}/bin/ddcutil setvcp 10 - 10";
-        "--locked XF86AudioMute"        = "exec ${pkgs.wireplumber}/bin/wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
-        "--locked XF86AudioLowerVolume" = "exec ${pkgs.wireplumber}/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-";
-        "--locked XF86AudioRaiseVolume" = "exec ${pkgs.wireplumber}/bin/wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+";
-        "--locked XF86AudioMicMute"     = "exec ${pkgs.wireplumber}/bin/wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle";
-        "--locked XF86AudioPlay"        = "exec ${pkgs.playerctl}/bin/playerctl play-pause";
-        "--locked XF86AudioNext"        = "exec ${pkgs.playerctl}/bin/playerctl next";
-        "--locked XF86AudioPrev"        = "exec ${pkgs.playerctl}/bin/playerctl previous";
-      };
+      keybindings = toBindings (keyBindings ++ [ helpBinding ]);
     };
     extraConfig = ''
       for_window [all] inhibit_idle fullscreen
