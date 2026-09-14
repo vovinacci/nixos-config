@@ -56,22 +56,27 @@
   # Diagnostics for the USB root dropout (see IOWriteBandwidthMax comment).
   #
   # When the enclosure leaves the bus, btrfs reports `bdev <missing disk>` and
-  # the kernel survives with no root - so it never panics, drm_panic never
-  # fires, and journald cannot write anything because /var/log is on the disk
-  # that just vanished. The only record is the console, and consoleLogLevel=4
-  # (the NixOS default) suppresses the KERN_INFO `USB disconnect` line that
-  # says why. The cause has been lost to this three times over.
+  # the kernel survives with no root, and journald cannot write anything
+  # because /var/log is on the disk that just vanished. It does not panic
+  # right away: in the 2026-09-13 dropout (captured by pstore) the disk left
+  # the bus at 262 s, and the panic only came at 1315 s, when systemd (PID 1)
+  # segfaulted paging from the vanished root. A reset before that point leaves
+  # no record except the console, and consoleLogLevel=4 (the NixOS default)
+  # suppresses the KERN_INFO `USB disconnect` line that says why.
   #
   # consoleLogLevel=7 puts the USB and xHCI messages back on screen, and
   # drm.panic_screen=qr_code makes any panic render the whole ring buffer as a
-  # photographable QR code rather than a wall of scrolling text.
+  # photographable QR code rather than a wall of scrolling text. The panic is
+  # also written to EFI pstore and archived to /var/lib/systemd/pstore (on
+  # /persist, see impermanence.nix) on the next boot.
   boot.consoleLogLevel = 7;
 
-  # Panic instead of limping when btrfs hits a fatal error. Merged into the
-  # option lists in hardware-configuration.nix, which is generated and must not
-  # be edited by hand. Without this the kernel survives the disk vanishing and
-  # prints to a console nobody can save; with it, the panic handler dumps the
-  # whole ring buffer as a QR code.
+  # Panic when btrfs itself hits a fatal error. Merged into the option lists in
+  # hardware-configuration.nix, which is generated and must not be edited by
+  # hand. Note that this does not cover the disk vanishing: that surfaces as a
+  # transaction abort, which only forces the filesystem read-only (observed
+  # 2026-09-13: "Transaction aborted (error -5)" then "forced readonly", no
+  # panic).
   fileSystems."/nix".options     = [ "fatal_errors=panic" ];
   fileSystems."/home".options    = [ "fatal_errors=panic" ];
   fileSystems."/persist".options = [ "fatal_errors=panic" ];

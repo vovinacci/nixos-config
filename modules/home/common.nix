@@ -426,9 +426,8 @@
     extraPackages = [ pkgs.bat-extras.batman ];
   };
 
+  # EDITOR / VISUAL come from programs.neovim.defaultEditor (neovim.nix).
   home.sessionVariables = {
-    EDITOR   = "nvim";
-    VISUAL   = "nvim";
     MANPAGER = "sh -c 'col -bx | bat -l man -p'";
     # theme on-demand difftastic (git dft / dfts)
     DFT_DISPLAY    = "side-by-side";
