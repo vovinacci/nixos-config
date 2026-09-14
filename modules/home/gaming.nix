@@ -8,9 +8,8 @@
     heroic
     lutris
 
-    # proton for broader library (steam itself is programs.steam, see
-    # modules/system/gaming.nix)
-    protonup-qt      # manage proton versions
+    # GE-Proton comes from programs.steam.extraCompatPackages for Steam
+    # (modules/system/gaming.nix); Heroic and Lutris download their own.
 
     # tools
     innoextract      # extract GOG installers

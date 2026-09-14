@@ -7,5 +7,9 @@
     enable = true;
     remotePlay.openFirewall = false;
     dedicatedServer.openFirewall = false;
+    # GE-Proton as a Steam compatibility tool, updated with nixpkgs. Steam lists
+    # it under one stable name ("GE-Proton"), so a game set to it keeps working
+    # across updates, but only the current version is available.
+    extraCompatPackages = [ pkgs.proton-ge-bin ];
   };
 }

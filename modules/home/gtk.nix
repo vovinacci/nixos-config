@@ -21,6 +21,11 @@
     # Also writes the org/gnome/desktop/interface dconf keys (color-scheme,
     # gtk-theme, icon-theme, cursor-theme, cursor-size, font-name).
     colorScheme = "dark";
+    # GTK4/libadwaita apps (pavucontrol, Transmission, the keyring prompt)
+    # ignore gtk-theme; home-manager imports the theme's gtk-4.0/gtk.css into
+    # ~/.config/gtk-4.0/gtk.css instead. Unsupported by GNOME: a libadwaita
+    # update can break individual widgets - set this to null to revert.
+    gtk4.theme = config.gtk.theme;
   };
 
   # Single source for the cursor: sets gtk.cursorTheme, XCURSOR_THEME/SIZE,
