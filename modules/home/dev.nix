@@ -158,8 +158,15 @@
   };
 
   # GOPATH is Go's default ~/go; only its bin directory needs to be on PATH.
+  #
+  # mise shims serve everything that never runs `mise activate` (an
+  # interactive-zsh prompt hook): scripts, `zsh -c`, ssh commands, and tools
+  # started from a shell - Claude Code runs its hooks via /bin/sh and its MCP
+  # servers via npx. The session vars are sourced from .zshenv and .zprofile,
+  # so this reaches every zsh. GUI apps get the shims from sway (sway.nix).
   home.sessionPath = [
     "${config.home.homeDirectory}/go/bin"
     "${config.home.homeDirectory}/.local/bin"
+    "${config.xdg.dataHome}/mise/shims"
   ];
 }

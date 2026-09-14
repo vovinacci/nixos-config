@@ -1,30 +1,14 @@
 { config, osConfig, pkgs, lib, ... }:
 
 let
-  layoutCycle = pkgs.writeShellScriptBin "layout-cycle" ''
-    current=$(${pkgs.sway}/bin/swaymsg -t get_tree | ${pkgs.jq}/bin/jq -r '
-      [recurse(.nodes[]?, .floating_nodes[]?) |
-        select(.layout | IN("splith", "splitv", "tabbed", "stacking")) |
-        select(((.nodes // []) + (.floating_nodes // [])) |
-          map(select(.focused == true)) | length > 0)
-      ] | last | .layout
-    ')
-    case "$current" in
-      splith)   ${pkgs.sway}/bin/swaymsg layout splitv ;;
-      splitv)   ${pkgs.sway}/bin/swaymsg layout tabbed ;;
-      tabbed)   ${pkgs.sway}/bin/swaymsg layout stacking ;;
-      stacking) ${pkgs.sway}/bin/swaymsg layout splith ;;
-      *)        ${pkgs.sway}/bin/swaymsg layout splith ;;
-    esac
-    ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar
-  '';
-
-  layoutHints = pkgs.writeShellScriptBin "layout-hints" ''
-    mode=$(${pkgs.sway}/bin/swaymsg -t get_binding_state | ${pkgs.jq}/bin/jq -r '.name')
-    if [ "$mode" = "layout" ]; then
-      echo "h H · v V · t tab · s stack · Tab cycle · 1/2/3/4 width · S+1/2/3 height"
-    fi
-  '';
+  # Magnet-style placement; behaviour is documented in window-snap.py. The
+  # same binary runs as a daemon (systemd.user.services.window-snap below) to
+  # apply tiled snaps made on a window that was alone on its workspace.
+  windowSnap = pkgs.writers.writePython3Bin "window-snap" {
+    libraries = [ pkgs.python3Packages.i3ipc ];
+    flakeIgnore = [ "E501" ];
+  } (lib.replaceStrings [ "@notify_send@" ] [ "${pkgs.libnotify}/bin/notify-send" ]
+      (builtins.readFile ./window-snap.py));
 
   scratchpadPick = pkgs.writeShellScriptBin "scratchpad-pick" ''
     selected=$(${pkgs.sway}/bin/swaymsg -t get_tree | ${pkgs.jq}/bin/jq -r '
@@ -87,46 +71,12 @@ let
     fi
   '';
 
-  layoutInfo = pkgs.writeShellScriptBin "layout-info" ''
-    data=$(${pkgs.sway}/bin/swaymsg -t get_tree | ${pkgs.jq}/bin/jq -r '
-      ([recurse(.nodes[]?, .floating_nodes[]?) |
-        select(.layout | IN("splith", "splitv", "tabbed", "stacking")) |
-        select(((.nodes // []) + (.floating_nodes // [])) |
-          map(select(.focused == true)) | length > 0)
-      ] | last) // empty |
-      {l: .layout, pw: .rect.width, ph: .rect.height,
-       cw: (((.nodes // []) + (.floating_nodes // [])) | map(select(.focused == true)) | first | .rect.width),
-       ch: (((.nodes // []) + (.floating_nodes // [])) | map(select(.focused == true)) | first | .rect.height)
-      } | "\(.l) \(.pw) \(.ph) \(.cw) \(.ch)"
-    ' 2>/dev/null)
-    [ -z "$data" ] && exit 0
-
-    read -r layout pw ph cw ch <<< "$data"
-
-    snap() {
-      local v=$1 t=$2
-      [ "$t" -eq 0 ] && echo "?" && return
-      local p=$(( v * 100 / t ))
-      if   [ "$p" -le 29 ]; then echo "1/4"
-      elif [ "$p" -le 42 ]; then echo "1/3"
-      elif [ "$p" -le 57 ]; then echo "1/2"
-      elif [ "$p" -le 70 ]; then echo "2/3"
-      elif [ "$p" -le 84 ]; then echo "3/4"
-      else echo "1/1"
-      fi
-    }
-
-    case "$layout" in
-      splith)   echo "⊞ H  $(snap "$cw" "$pw")" ;;
-      splitv)   echo "⊟ V  $(snap "$ch" "$ph")" ;;
-      tabbed)   echo "⊠ T" ;;
-      stacking) echo "☰ S" ;;
-      *)        echo "? $layout" ;;
-    esac
-  '';
+  # The mode's name is its key map: waybar's sway/mode module displays it
+  # while the mode is active.
+  windowMode = "window: h/l/k/j half · y/u/b/n quarter · 1/2/3 third · ⇧1/⇧3 two-thirds · f max · c center · r restore · t tabs · s stack · e split";
 in
 {
-  home.packages = with pkgs; [ satty ddcutil wf-recorder layoutCycle layoutInfo layoutHints scratchpadPick screenRec screencastStop shareScale powerMenu ];
+  home.packages = with pkgs; [ satty ddcutil wf-recorder windowSnap scratchpadPick screenRec screencastStop shareScale powerMenu ];
 
   # Session daemons run as user services bound to the graphical session rather
   # than as sway `exec`s: restarted on failure, logged to the journal, and
@@ -155,6 +105,19 @@ in
   # waybar only hosts StatusNotifierItems, not XEmbed icons. This makes the
   # nm-applet and udiskie services pass --indicator / --appindicator.
   xsession.preferStatusNotifierItems = true;
+
+  systemd.user.services.window-snap = {
+    Unit = {
+      Description = "Apply pending sway window snaps when windows open";
+      PartOf      = [ config.wayland.systemd.target ];
+      After       = [ config.wayland.systemd.target ];
+    };
+    Service = {
+      ExecStart = "${windowSnap}/bin/window-snap --daemon";
+      Restart   = "on-failure";
+    };
+    Install.WantedBy = [ config.wayland.systemd.target ];
+  };
 
   # services.cliphist watches only the regular clipboard; this keeps the
   # primary selection in history as well.
@@ -249,22 +212,31 @@ in
       };
       bars = [];
       focus.followMouse = false;
+      # One key after $mod+w, then back to the default mode.
       modes = lib.mkOptionDefault {
-        layout = {
-          "h"         = "layout splith; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
-          "v"         = "layout splitv; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
-          "t"         = "layout tabbed; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
-          "s"         = "layout stacking; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
-          "Tab"       = "exec ${layoutCycle}/bin/layout-cycle";
-          "1"         = "resize set width 33 ppt; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
-          "2"         = "resize set width 50 ppt; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
-          "3"         = "resize set width 67 ppt; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
-          "4"         = "resize set width 100 ppt; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
-          "Shift+1"   = "resize set height 33 ppt; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
-          "Shift+2"   = "resize set height 50 ppt; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
-          "Shift+3"   = "resize set height 67 ppt; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+1 waybar";
-          "Escape"    = "mode default; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+2 waybar";
-          "Return"    = "mode default; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+2 waybar";
+        ${windowMode} = let snap = a: "mode default; exec ${windowSnap}/bin/window-snap ${a}"; in {
+          "h"         = snap "left";
+          "l"         = snap "right";
+          "k"         = snap "top";
+          "j"         = snap "bottom";
+          "y"         = snap "top-left";
+          "u"         = snap "top-right";
+          "b"         = snap "bottom-left";
+          "n"         = snap "bottom-right";
+          "1"         = snap "left-third";
+          "2"         = snap "center-third";
+          "3"         = snap "right-third";
+          "Shift+1"   = snap "left-two-thirds";
+          "Shift+3"   = snap "right-two-thirds";
+          "f"         = snap "maximize";
+          "Return"    = snap "maximize";
+          "c"         = snap "center";
+          "r"         = snap "restore";
+          "BackSpace" = snap "restore";
+          "t"         = "mode default; layout tabbed";
+          "s"         = "mode default; layout stacking";
+          "e"         = "mode default; layout toggle split";
+          "Escape"    = "mode default";
         };
       };
       keybindings = let mod = "Mod4"; in {
@@ -284,8 +256,7 @@ in
         "${mod}+Shift+j"     = "move down";
         "${mod}+Shift+k"     = "move up";
         "${mod}+Shift+l"     = "move right";
-        "${mod}+a"           = "mode layout; exec ${pkgs.procps}/bin/pkill -SIGRTMIN+2 waybar";
-        "${mod}+Tab"         = "exec ${layoutCycle}/bin/layout-cycle";
+        "${mod}+w"           = "mode \"${windowMode}\"";
         "${mod}+f"           = "fullscreen toggle";
         "${mod}+n"           = "exec ${pkgs.swaynotificationcenter}/bin/swaync-client -t -sw";
         "${mod}+Shift+n"     = "exec ${pkgs.swaynotificationcenter}/bin/swaync-client -d -sw";
@@ -297,6 +268,9 @@ in
         "${mod}+ctrl+minus"  = "exec ${scratchpadPick}/bin/scratchpad-pick";
         "${mod}+Shift+minus" = "move scratchpad";
         "${mod}+Shift+f"     = "floating toggle";
+        # focus left/right never crosses between the tiling and floating
+        # layers; this is the only keyboard way from one to the other.
+        "${mod}+Shift+space" = "focus mode_toggle";
         "${mod}+1"           = "workspace number 1";
         "${mod}+2"           = "workspace number 2";
         "${mod}+3"           = "workspace number 3";
@@ -334,12 +308,23 @@ in
     };
     extraConfig = ''
       for_window [all] inhibit_idle fullscreen
-      for_window [app_id="udiskie"] floating enable
-      for_window [app_id="Slack" title="^Huddle:"] floating enable
-      for_window [app_id=".blueman-manager-wrapped"] floating enable
-      for_window [app_id="pavucontrol"] floating enable
-      for_window [app_id="nm-connection-editor"] floating enable
-      for_window [class="jetbrains-idea" title="Welcome to IntelliJ IDEA"] floating enable
+
+      # Criteria are regexes matched anywhere in the value, so they are
+      # anchored: an app changing its ID should stop matching, not match by
+      # accident (pavucontrol 6 is org.pulseaudio.pavucontrol, not pavucontrol).
+      # Utility windows open at a readable size in the middle of the screen.
+      for_window [app_id="^udiskie$"] floating enable
+      for_window [app_id="^Slack$" title="^Huddle:"] floating enable
+      for_window [app_id="^\.blueman-manager-wrapped$"] floating enable, resize set 40 ppt 50 ppt, move position center
+      for_window [app_id="^org\.pulseaudio\.pavucontrol$"] floating enable, resize set 40 ppt 50 ppt, move position center
+      for_window [app_id="^nm-connection-editor$"] floating enable, resize set 40 ppt 50 ppt, move position center
+      # IDEA runs under XWayland (class) or natively (app_id), depending on
+      # its awt.toolkit setting.
+      for_window [class="^jetbrains-idea$" title="^Welcome to IntelliJ IDEA$"] floating enable
+      for_window [app_id="^jetbrains-idea$" title="^Welcome to IntelliJ IDEA$"] floating enable
+      # Picture-in-picture video stays on top of every workspace.
+      for_window [app_id="^firefox$" title="^Picture-in-Picture$"] floating enable, sticky enable
+
       output * bg #1a1a2e solid_color
     '';
   };

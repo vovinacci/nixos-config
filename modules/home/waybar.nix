@@ -25,8 +25,6 @@
 
       #workspaces,
       #mode,
-      #custom-layout,
-      #custom-layout-hints,
       #mpris,
       #clock,
       #privacy,
@@ -97,15 +95,6 @@
       #mode {
         color: #fab387;
         font-weight: bold;
-      }
-
-      #custom-layout {
-        color: #89b4fa;
-      }
-
-      #custom-layout-hints {
-        color: #bac2de;
-        font-style: italic;
       }
 
       #mpris {
@@ -204,7 +193,7 @@
       height  = 45;
       spacing = 15;
 
-      modules-left   = [ "sway/workspaces" "sway/mode" "custom/layout" "custom/layout-hints" "mpris" ];
+      modules-left   = [ "sway/workspaces" "sway/mode" "mpris" ];
       modules-center = [ "clock" ];
       modules-right  = [ "privacy" "idle_inhibitor" "disk" "temperature" "cpu" "memory" "bluetooth" "pulseaudio" "network" "sway/language" "tray" "custom/notification" "custom/power" ];
 
@@ -222,20 +211,10 @@
         tooltip = false;
       };
 
-      "custom/layout" = {
-        exec     = "layout-info";
-        signal   = 1;
-        interval = 5;
-        format   = "{}";
-        tooltip  = false;
-      };
-
-      "custom/layout-hints" = {
-        exec    = "layout-hints";
-        signal  = 2;
-        format  = "{}";
-        tooltip = false;
-      };
+      # Shows the active sway mode's name; the window mode's name is its key
+      # map (see windowMode in sway.nix). Plain text: no pango markup, so the
+      # name cannot break the label.
+      "sway/mode".format = "{}";
 
       clock = {
         format     = "{:%a %d %b  %H:%M}";
