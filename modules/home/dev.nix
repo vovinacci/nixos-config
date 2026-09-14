@@ -47,8 +47,8 @@
     buf
     protobuf
 
-    # java/jvm
-    jdk21
+    # java/jvm (the JDK itself comes from mise, below; these tools are wrapped
+    # with their own nixpkgs JDK)
     maven
     scala
     sbt
@@ -95,13 +95,9 @@
     golangci-lint
     eslint
 
-    # languages
+    # C toolchain for cgo and native extensions; language runtimes come from
+    # mise (below)
     gcc
-    go
-    nodejs
-    ruby
-    deno
-    python3
 
     # docker tools
     oxker
@@ -128,6 +124,28 @@
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
+  };
+
+  # Language runtimes. Projects pin their own versions (mise.toml,
+  # .tool-versions, .nvmrc, .python-version) without needing Nix; these are
+  # the global defaults. Install or update them with `mise install`.
+  # Downloaded binaries run through nix-ld (modules/system/common.nix).
+  programs.mise = {
+    enable = true;
+    globalConfig = {
+      tools = {
+        go     = "1.27";
+        node   = "24";
+        python = "3.14";
+        ruby   = "3.4";
+        deno   = "2";
+        java   = "temurin-21";
+      };
+      # mise defaults to compiling every runtime from source on NixOS, where
+      # downloaded binaries do not run without nix-ld. nix-ld is enabled here,
+      # and source builds would need headers NixOS does not provide globally.
+      settings.all_compile = false;
+    };
   };
 
   programs.ripgrep = {

@@ -42,6 +42,15 @@
   ];
 
   programs.nix-ld.enable = true;
+  # Added to nix-ld's default set (zlib, openssl, curl, ...) for runtimes that
+  # mise and mason download: native Python wheels, Ruby gems, REPLs.
+  programs.nix-ld.libraries = with pkgs; [
+    libffi
+    readline
+    ncurses
+    sqlite
+    libyaml
+  ];
 
   # Virtual CD/DVD drives: vhba module, vhba_ctl udev rule for the cdrom group,
   # D-Bus activated cdemu-daemon user service, and the CLI client.

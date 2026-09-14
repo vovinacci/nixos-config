@@ -193,6 +193,12 @@ in
     # This is the sway the session runs (programs.sway.package is null on the
     # NixOS side), so the GTK/GSettings wrapper belongs here.
     wrapperFeatures.gtk = true;
+    # mise shims for apps started from sway (IDEs, editors). Interactive
+    # shells use `mise activate` instead; the shims resolve the global
+    # versions from programs.mise in dev.nix.
+    extraSessionCommands = ''
+      export PATH="$HOME/.local/share/mise/shims:$PATH"
+    '';
     systemd = {
       enable       = true;
       # Sway runs no XDG autostart itself; this starts entries such as
