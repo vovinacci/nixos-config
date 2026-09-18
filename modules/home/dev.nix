@@ -30,6 +30,7 @@
     dust       # du replacement: visual, sorted tree of disk usage
     duf        # df replacement: colored, grouped filesystem overview
     tealdeer   # `tldr`: concise command examples
+    hexpatch   # TUI hex editor with disassembler and ELF/PE parsing
 
     # network tools
     nmap
