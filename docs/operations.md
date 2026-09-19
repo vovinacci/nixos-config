@@ -184,7 +184,7 @@ Remove old generations and collect unreferenced store paths, with the same
 retention as the automatic run:
 
 ```shell
-nh clean all --keep 5 --keep-since 30d
+nh clean all --keep 10
 ```
 
 Avoid `nix-collect-garbage -d`: it deletes every old generation, leaving nothing
@@ -195,20 +195,26 @@ to roll back to.
 Configured in `modules/system/common.nix` via `programs.nh.clean`:
 
 - Runs **weekly** (systemd timer: `nh-clean.timer`).
-- Deletes generations older than **30 days** (`--keep-since 30d`).
-- Always retains the **last 5 generations** regardless of age (`--keep 5`).
+- Keeps the **last 10 generations** and deletes the rest (`--keep 10`), matching
+  the 10 boot menu entries.
+
+`--keep-since` would also keep every generation younger than the given age: nh
+keeps a generation that satisfies *either* flag, so after a busy week the store
+holds more generations than the menu shows.
 
 The equivalent manual invocation is:
 
 ```shell
-nh clean all --keep 5 --keep-since 30d
+nh clean all --keep 10
 ```
 
 `--keep` and `boot.loader.systemd-boot.configurationLimit` are independent. `--keep`
 controls how many generations survive garbage collection in `/nix` (per profile:
-system, home-manager, and user profiles). `configurationLimit` (set to **4** in
+system and user profiles). `configurationLimit` (set to **10** in
 `hosts/darkhero/default.nix`) controls how many entries the bootloader writes to the
-512 MB ESP, which is the actual space constraint. Keeping more generations than boot
+2 GiB ESP. Each distinct kernel + initrd pair costs ~90M there, and generations
+sharing a pair share its files, so 10 entries leave ample room. Menu entries change
+only when the bootloader is reinstalled (`nh os boot` or `switch`), not on `nh clean`. Keeping more generations than boot
 entries is harmless - the extra generation simply has no menu entry. Keeping *fewer*
 than `configurationLimit` is the mistake to avoid, since it starves the boot menu.
 
@@ -223,3 +229,62 @@ weekly.
 `nix.settings.auto-optimise-store = true` is set in `modules/system/common.nix`.
 The store is hard-link deduplicated automatically after every build - no manual action
 required.
+
+---
+
+## Dual Boot with Windows
+
+Windows 11 lives on its own NVMe with its own ESP. The firmware boot order puts
+"Linux Boot Manager" (the 1 TB NVMe) first; Windows setup and some Windows
+updates move Windows back to the top, which is fixed in the firmware setup.
+
+### In Windows, once
+
+```bat
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v RealTimeIsUniversal /t REG_DWORD /d 1 /f
+powercfg /h off
+manage-bde -status
+```
+
+`RealTimeIsUniversal` keeps both systems reading the RTC as UTC. `powercfg /h off`
+turns off hibernation and Fast Startup, without which Linux cannot mount the
+Windows volume read-write. If `manage-bde` reports device encryption on C: and
+Linux should read the volume, `manage-bde -off C:`.
+
+### Boot entry in systemd-boot
+
+systemd-boot reaches a Windows install on another ESP through the EFI shell,
+using that ESP's shell handle. To find the handle, enable the shell in
+`hosts/darkhero/default.nix`:
+
+```nix
+boot.loader.systemd-boot.edk2-uefi-shell.enable = true;
+```
+
+`nh os boot`, reboot into "EDK2 UEFI Shell", and look for the Windows loader:
+
+```
+map -c
+ls HD1b1:\EFI\Microsoft\Boot\bootmgfw.efi     # try each HDxxx until one exists
+```
+
+Replace the shell entry with the Windows one:
+
+```nix
+boot.loader.systemd-boot.windows."11" = {
+  title = "Windows 11";
+  efiDeviceHandle = "HD1b1";     # the handle map -c showed
+  sortKey = "z_windows";
+};
+```
+
+Handles change when disks are added, removed or re-partitioned, so check the
+entry after any disk change. The firmware boot menu always reaches Windows
+directly.
+
+The entry lives in `hosts/darkhero/default.nix`. The EDK2 shell binary stays on
+the ESP either way: the Windows entry chainloads `bootmgfw.efi` through it.
+
+Firmware changes can alter PCR 7, after which the keystore falls back to the
+YubiKey at boot; re-enroll the TPM as described in
+[Storage](storage.md#keystore).

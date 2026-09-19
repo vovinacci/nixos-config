@@ -8,22 +8,22 @@ Secrets are managed with [SOPS](https://github.com/getsops/sops) using
 | Key          | Alias in .sops.yaml     | Location                            | Used when                                              |
 |--------------|-------------------------|-------------------------------------|--------------------------------------------------------|
 | Host age key | `host_darkhero_persist` | `/persist/var/lib/sops-nix/key.txt` | Boot-time secret decryption (automatic, no interaction) |
-| User age key | `user_darkhero`         | `~/.config/sops/age/keys.txt`       | Home-manager secret decryption at login                |
+| User age key | `user_darkhero`         | `~/.config/sops/age/keys.txt`       | User-level decryption (outside this repo)              |
 | YubiKey      | `yubikey_vovin`         | PIV slot 1 on the YubiKey           | Interactive editing (`sops` CLI)                       |
 
 All three keys are stored as age public keys in `.sops.yaml`. Any of the three
 corresponding private keys can decrypt any file matching `secrets/*.sops.yaml`.
 
 **System secrets** (decrypted by sops-nix at boot) land in `/run/secrets/<name>`.
-**Home-manager secrets** (decrypted by sops-nix at login and on every switch) land in
-`~/.config/sops-nix/secrets/<name>`, a symlink into `/run/user/1000/secrets.d/`.
+User-level secrets are not consumed by this repo: user configuration lives in the
+user's own dotfiles, which decrypt what they need with the user age key.
 
 ### Current Secret Files
 
 | File                        | Contents                                                  |
 |-----------------------------|-----------------------------------------------------------|
-| `secrets/secrets.sops.yaml` | `user_password_hash`, `git_user_config`, `zsh_local`      |
-| `secrets/ssh.sops.yaml`     | `ssh_bundle` - shell script deploying SSH keys and config |
+| `secrets/secrets.sops.yaml` | `user_password_hash` (used here); `git_user_config`, `zsh_local` (unused here, see above) |
+| `secrets/ssh.sops.yaml`     | `ssh_bundle` - shell script deploying SSH keys and config (unused here, see above) |
 
 ---
 
@@ -37,10 +37,6 @@ sops secrets/ssh.sops.yaml
 ```
 
 SOPS decrypts to a temp file, opens `$EDITOR`, then re-encrypts on save.
-
-`ssh_bundle` is a shell script. Edit it carefully - it is executed by a systemd user
-service (`ssh-bundle.service`) at login, and again whenever sops-nix re-decrypts on a
-switch, to deploy keys and SSH `config.d` files.
 
 ### Adding a New Secret Key to an Existing File
 
@@ -84,19 +80,9 @@ For secrets needed during early boot (e.g. user passwords):
 sops.secrets.my_secret = { neededForUsers = true; };
 ```
 
-### Reference in Home-Manager Config
-
-```nix
-# home/workstation.nix
-sops.secrets.my_secret = {
-  path = "${config.home.homeDirectory}/.config/myapp/secret";
-};
-# Or leave path unset - defaults to ~/.config/sops-nix/secrets/my_secret
-```
-
 ### Note: SSH Authorised Keys
 
-Secrets decrypted at runtime land under `/run/secrets/` or `/run/user/1000/secrets.d/`.
+Secrets decrypted at runtime land under `/run/secrets/`.
 These paths do not exist during early boot when `openssh` reads `authorizedKeys`.
 **Keep SSH public keys inline** in `profiles/workstation.nix` rather than referencing
 a SOPS secret path.
@@ -203,3 +189,30 @@ identity. The host key and user key allow re-encryption without the YubiKey.
    ```
 
 5. Commit the updated `.sops.yaml` and `secrets/*.sops.yaml`.
+
+---
+
+## Secure Boot
+
+Secure Boot is **disabled**. The keystore's TPM2 token is bound to PCR 7, which
+without Secure Boot measures nothing an attacker has to change: anything that
+boots on this machine, a live USB included, gets the same PCR 7 and the TPM
+releases the key. Until Secure Boot is on, TPM2 unlocking protects the data only
+when the disk is taken out of this machine. See [Storage](storage.md) for the
+unlock chain.
+
+Enabling it, with lanzaboote:
+
+1. Add the lanzaboote flake input, replace `boot.loader.systemd-boot` with
+   `boot.lanzaboote`, and set `boot.lanzaboote.pkiBundle =
+   "/persist/var/lib/sbctl"` (`/var/lib` is tmpfs). Create the keys there with
+   `sbctl create-keys`.
+2. Turn off kernel command-line editing in the boot menu (the lanzaboote
+   equivalent of `boot.loader.systemd-boot.editor = false`). With editing on,
+   anyone at the console can append `init=/bin/sh` and get a shell after the
+   TPM has already unlocked the keystore. Editing stays on until then because
+   it is the way into the initrd debug shell ([Storage](storage.md#recovery)).
+3. Firmware: Secure Boot to setup mode, then `sbctl enroll-keys --microsoft`
+   (the Microsoft keys keep Windows booting).
+4. Enabling Secure Boot changes PCR 7, so the first boot falls back to the
+   YubiKey. Re-enroll the TPM ([Storage](storage.md#keystore)).

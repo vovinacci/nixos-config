@@ -1,5 +1,5 @@
-{ config, pkgs, ... }: {
-  home.packages = with pkgs; [
+{ pkgs, ... }: {
+  environment.systemPackages = with pkgs; [
     zip
     unzip
     p7zip
@@ -13,5 +13,6 @@
     teams-for-linux
     vscode
     jetbrains.idea
+    bitwarden-desktop
   ];
 }

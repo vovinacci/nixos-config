@@ -19,7 +19,7 @@ repeated here:
 | Secrets, keys, rotation                             | `docs/security.md`   |
 
 **Read `CONTRIBUTING.md` before your first change to this repo.** In particular
-"System vs Home" (one layer owns each package) and "Workarounds" - those two
+"Packages Only, No User Configuration" (one module owns each package) and "Workarounds" - those two
 cover the defects agents introduce here most often. For anything non-trivial,
 model the change before solving it - see Model-First Reasoning below.
 
@@ -98,7 +98,7 @@ command in the same session was approved.
 nix eval --raw .#nixosConfigurations.darkhero.config.system.build.toplevel.drvPath
 ```
 
-This evaluates the whole configuration - system *and* home-manager - without
+This evaluates the whole system configuration without
 touching the running system. It must print a `.drv` path and emit no
 `evaluation warning:` lines (deprecated options, removed packages) before you
 claim a change works.

@@ -2,8 +2,7 @@
 
 ## Making a Change
 
-1. **Edit** the relevant module under `modules/system/`, `modules/home/`, or a host
-   file under `hosts/`.
+1. **Edit** the relevant module under `modules/system/`, or a host file under `hosts/`.
 2. **Evaluate** first - this is cheap and catches deprecated options and removed
    packages before you build anything:
    ```shell
@@ -30,42 +29,39 @@
 
 ## Module Conventions
 
-### System vs Home
+### Packages Only, No User Configuration
 
-| Concern                                       | Where             |
-|-----------------------------------------------|-------------------|
-| Hardware, kernel, daemons, system services    | `modules/system/` |
-| User dotfiles, user applications, desktop env | `modules/home/`   |
+This repo installs software and configures the system; it does not manage user
+configuration. Dotfiles - sway, waybar, shell, git, tmux, neovim, GTK settings and
+the like - live in the user's own dotfiles repository. Use a NixOS option only
+where it installs a binary or provides system integration (PAM, polkit, portals,
+user sockets); do not set user-level configuration through system options such as
+`programs.zsh.ohMyZsh`, `programs.git.config` or `programs.neovim.configure`, and
+avoid modules whose main effect is system-wide shell init (`programs.atuin`,
+`programs.zoxide`, `programs.fzf`) - those hooks belong in the user's shell config.
 
-**One layer owns each package.** The most common defect in this repo is the same
-program installed twice - once in `environment.systemPackages` and once in
-`home.packages`, or once as a package and once by the module that already installs
-it. Before adding a package, grep for it across `modules/` and check whether an
-option already provides it:
+**One module owns each package.** The most common defect in this repo is the same
+program installed twice - in two `environment.systemPackages` lists, or once as a
+package and once by the module that already installs it. Before adding a package,
+grep for it across `modules/` and check whether an option already provides it:
 
 - `services.blueman.enable` installs `blueman`
-- `programs.solaar.enable` installs `solaar`
-- `programs.delta`, `programs.fzf`, `programs.waybar`, `programs.firefox`, and
-  `programs.yazi` each install their own package
-
-The system layer is for root-shell and rescue tooling (`git`, `curl`, `neovim`) and
-for things with no home-manager equivalent. Anything configured through
-`programs.*`/`services.*` in home-manager belongs to the home layer only. A package
-that a module configures should be installed by that same module - see
-`modules/home/wofi.nix`, which owns both the wofi package and its stylesheet.
+- `hardware.logitech.wireless.enableGraphical` installs `solaar`
+- `programs.sway.extraPackages` installs `swaylock` and `swayidle`
+- `programs.firefox`, `programs.yazi`, `programs.neovim`, `programs.git`,
+  `programs.direnv` and `programs.gnupg.agent` each install their own package
 
 ### New Module vs Extending Existing
 
 - **New module**: when the concern is self-contained and togglable (e.g. a new hardware
-  device, a new application category). Create `modules/system/<name>.nix` or
-  `modules/home/<name>.nix` and import it in the relevant profile or home entrypoint.
+  device, a new application category). Create `modules/system/<name>.nix` and
+  import it in the relevant profile.
 - **Extend existing**: when the change logically belongs to an existing module (e.g.
-  adding a package to `dev.nix`, tweaking a keybinding in `sway.nix`).
+  adding a package to `dev.nix`).
 
 ### Wiring a New Module In
 
 - **System module** - import in `profiles/workstation.nix` (or the relevant profile).
-- **Home module** - import in `home/workstation.nix` (or the relevant home entrypoint).
 - **Host-specific config** - import inside `hosts/<name>/default.nix`.
 
 Example - adding a new system module:
@@ -79,20 +75,11 @@ imports = [
 ];
 ```
 
-### Sway Key Bindings
-
-Add or change bindings only in the `keyBindings` / `windowModeBindings` lists at
-the top of `modules/home/sway.nix`, as `bind key description command`. Sway's
-keybindings, the window mode, and the searchable key help (`$mod+/`) are all
-generated from those lists, so every binding needs a description, written in the
-words you would search for. Duplicate keys fail evaluation.
-
 ### Host-Specific Configuration
 
 Shared modules must not hardcode a particular machine - monitor names, refresh
-rates, and geographic coordinates belong in `hosts/<name>/`. darkhero's output
-mode and `wlsunset` coordinates live in `hosts/darkhero/default.nix` under
-`home-manager.users.<name>` for this reason.
+rates, and geographic coordinates belong in `hosts/<name>/` (or, for user-session
+settings such as sway outputs and `wlsunset` coordinates, in the user's dotfiles).
 
 ### Generated Files
 
@@ -107,8 +94,8 @@ explaining what must not be re-added.
 A workaround in this repo states three things: *what is broken upstream*, *why this
 fixes it*, and *when it can be removed*. Existing examples to follow:
 
-- `hosts/darkhero/default.nix` - USB storage quirk, nix-daemon write-bandwidth cap
-- `modules/home/common.nix` - `set-SSH_AUTH_SOCK` dependency cycle, atuin `?` rebind
+- `modules/system/input.nix` - solaar user service ported from unstable's
+  `programs.solaar`, which nixos-26.05 lacks
 
 Local policy (the udisks polkit rule and FUSE `allow_other` in
 `modules/system/desktop.nix`) is not a workaround - it has no upstream defect
@@ -118,18 +105,11 @@ to wait out - but still carries a comment saying why it exists.
 first: read the module source under `/nix/store/*-source/`, or run the tool and
 inspect its output.
 
-Two in the tree have been re-verified and are still required. Do not remove either
-without repeating that check:
-
-| Workaround | Why it still applies |
-|------------|----------------------|
-| `set-SSH_AUTH_SOCK.Unit.DefaultDependencies = false` | home-manager's `modules/misc/ssh-auth-sock.nix` still emits the cyclic ordering |
-| `bindkey '?' self-insert` at `mkOrder 2500` | `atuin init zsh` still binds `?` to its AI prompt |
-
 ## Theme
 
-Desktop surfaces (sway, waybar, swaync, wofi, swaylock) share one palette. Reuse
-these values rather than inventing hex codes:
+Desktop surfaces (sway, waybar, swaync, wofi, swaylock) share one palette. They are
+configured in the user's dotfiles; anything themed from this repo (e.g. the
+greeter) reuses these values rather than inventing hex codes:
 
 | Role          | Value     |
 |---------------|-----------|
@@ -197,7 +177,7 @@ it there, then keep the commit body short or omit it.
 - **Plaintext secrets** of any kind - passwords, private keys, tokens, API keys.
   Encrypt with SOPS before committing. See [Security](docs/security.md).
 - **SSH private keys** - the `ssh_bundle` secret in `secrets/ssh.sops.yaml` holds
-  all SSH keys encrypted; the deploy service extracts them at login.
+  them encrypted; deploying them is the user's dotfiles' job, not this repo's.
 - **Personal data** - avoid embedding identifiable information (e.g. device names,
   email addresses) in config files. Keep such details in SOPS secrets where possible.
 - **Unencrypted `.yaml` files** under `secrets/` - the `.gitignore` blocks `*.yaml`

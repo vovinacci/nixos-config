@@ -1,4 +1,4 @@
-{ config, pkgs, nix-index-database, sops-nix, username, ... }: {
+{ config, username, ... }: {
   imports = [
     ../modules/system/audio.nix
     ../modules/system/desktop.nix
@@ -10,19 +10,22 @@
     ../modules/system/networking.nix
     ../modules/system/bluetooth.nix
     ../modules/system/memory-tools.nix
+    ../modules/system/shell.nix
+    ../modules/system/dev.nix
+    ../modules/system/apps.nix
+    ../modules/system/media.nix
+    ../modules/system/sway-scripts.nix
   ];
-
-  home-manager = {
-    useGlobalPkgs   = true;
-    useUserPackages = true;
-    backupFileExtension = "bak";
-    extraSpecialArgs = { inherit nix-index-database sops-nix username; };
-    users.${username} = import ../home/workstation.nix;
-  };
 
   sops.secrets.user_password_hash = {
     neededForUsers = true;
   };
+
+  # Root gets the same password as the user. `/` is tmpfs and root has no
+  # password otherwise, so /etc/shadow is rebuilt with root locked on every
+  # boot and sulogin refuses the emergency shell - the only place to recover
+  # from a failed mount (e.g. `zfs load-key` for /home).
+  users.users.root.hashedPasswordFile = config.sops.secrets.user_password_hash.path;
 
   users.users.${username} = {
     isNormalUser = true;

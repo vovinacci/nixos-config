@@ -1,5 +1,5 @@
-{ config, pkgs, lib, ... }: {
-  home.packages = with pkgs; [
+{ pkgs, lib, ... }: {
+  environment.systemPackages = with pkgs; [
     # api codegen
     openapi-generator-cli
 
@@ -8,11 +8,13 @@
     git-lfs
 
     # shell tools
+    chezmoi    # dotfiles manager; source: ~/src/vovinacci/dotfiles
     gnumake
     shellcheck
     shfmt
     hadolint
     yamllint
+    actionlint   # GitHub Actions workflows
     pre-commit
 
     # data tools
@@ -106,9 +108,15 @@
     # database
     pgcli
 
-    # ai cli tools
-    claude-code
-    antigravity-cli  # binary is `agy`; successor to the removed gemini-cli
+    # ai cli tools: from the nix-ai-tools flake, not nixpkgs, so they track
+    # upstream releases instead of the 26.05 freeze (see flake.nix)
+    ai-tools.claude-code
+    ai-tools.codex
+    ai-tools.cursor-agent
+    ai-tools.gemini-cli
+    # antigravity-cli is Google's agentic coding CLI (`agy`); separate tool
+    # from gemini-cli (`gemini`), both still released upstream
+    ai-tools.antigravity-cli
 
     # git tools
     lazygit
@@ -120,54 +128,27 @@
     postman
     keybase
     winbox
+
+    # language runtimes: mise, plus `usage`, which mise's generated shell
+    # completions call at completion time. Projects pin their own versions
+    # (mise.toml, .tool-versions, ...); downloaded runtimes run through nix-ld
+    # (modules/system/common.nix). Global versions and the shims PATH entry
+    # are user configuration (dotfiles).
+    mise
+    usage
+
+    # neovim language servers; nvim-lspconfig finds them on PATH
+    lua-language-server
+    nil
+    typescript-language-server
+    vscode-langservers-extracted
+    rust-analyzer
+    gopls
+    pyright
+    jdt-language-server
+    tree-sitter
   ];
 
-  programs.direnv = {
-    enable = true;
-    nix-direnv.enable = true;
-  };
-
-  # Language runtimes. Projects pin their own versions (mise.toml,
-  # .tool-versions, .nvmrc, .python-version) without needing Nix; these are
-  # the global defaults. Install or update them with `mise install`.
-  # Downloaded binaries run through nix-ld (modules/system/common.nix).
-  programs.mise = {
-    enable = true;
-    globalConfig = {
-      tools = {
-        go     = "1.27";
-        node   = "24";
-        python = "3.14";
-        ruby   = "3.4";
-        deno   = "2";
-        java   = "temurin-21";
-      };
-      # mise defaults to compiling every runtime from source on NixOS, where
-      # downloaded binaries do not run without nix-ld. nix-ld is enabled here,
-      # and source builds would need headers NixOS does not provide globally.
-      settings.all_compile = false;
-    };
-  };
-
-  programs.ripgrep = {
-    enable = true;
-    arguments = [
-      "--smart-case"
-      "--hidden"
-      "--glob=!.git/*"
-    ];
-  };
-
-  # GOPATH is Go's default ~/go; only its bin directory needs to be on PATH.
-  #
-  # mise shims serve everything that never runs `mise activate` (an
-  # interactive-zsh prompt hook): scripts, `zsh -c`, ssh commands, and tools
-  # started from a shell - Claude Code runs its hooks via /bin/sh and its MCP
-  # servers via npx. The session vars are sourced from .zshenv and .zprofile,
-  # so this reaches every zsh. GUI apps get the shims from sway (sway.nix).
-  home.sessionPath = [
-    "${config.home.homeDirectory}/go/bin"
-    "${config.home.homeDirectory}/.local/bin"
-    "${config.xdg.dataHome}/mise/shims"
-  ];
+  # Installs direnv with nix-direnv and the zsh hook.
+  programs.direnv.enable = true;
 }

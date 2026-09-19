@@ -1,7 +1,9 @@
 # NixOS Fleet Configuration
 
-Flake-based NixOS configuration for the `darkhero` workstation. Manages system and
-home-manager configuration declaratively with ephemeral root and SOPS-encrypted secrets.
+Flake-based NixOS configuration for the `darkhero` workstation. Manages the system
+configuration declaratively with ephemeral root and SOPS-encrypted secrets. User
+configuration (dotfiles) is not managed here - it lives in the user's own dotfiles
+repository; this repo installs the software those dotfiles configure.
 
 ## Repository Layout
 
@@ -9,10 +11,8 @@ home-manager configuration declaratively with ephemeral root and SOPS-encrypted 
 flake.nix        - inputs, host definitions, mkSystem helper
 flake.lock       - locked dependency versions
 hosts/           - per-host hardware, boot, and impermanence config
-modules/system/  - NixOS system modules (hardware, services, OS packages)
-modules/home/    - home-manager modules (dotfiles, user applications)
+modules/system/  - NixOS modules (hardware, services, system and user packages)
 profiles/        - module collections wired together per use-case
-home/            - per-user home-manager entrypoints
 secrets/         - SOPS-encrypted secrets (*.sops.yaml)
 docs/            - operational documentation
 ```
@@ -26,11 +26,11 @@ docs/            - operational documentation
 ## Architecture Notes
 
 - **Ephemeral root**: `/` is a 4 GB tmpfs. Only `/nix`, `/home`, and `/persist` survive
-  reboots (Btrfs subvolumes). System state listed in `hosts/darkhero/impermanence.nix`
+  reboots (ZFS datasets on `rpool`; `/home` is encrypted, see `hosts/darkhero/disks.nix`). System state listed in `hosts/darkhero/impermanence.nix`
   is bind-mounted from `/persist`.
 - **Secrets**: SOPS/age with a three-key model - host age key (boot-time), user age key
   (session), and YubiKey (interactive editing). See [Security](docs/security.md).
-- **Nixpkgs channel**: tracks `nixos-unstable`.
+- **Nixpkgs channel**: tracks `nixos-26.05` (stable).
 
 ## Quick Start
 
@@ -62,3 +62,4 @@ nh os build-vm
 - [Contributing](CONTRIBUTING.md) - making changes, testing, commit conventions
 - [Operations](docs/operations.md) - updates, rollbacks, adding hosts, test VMs
 - [Security](docs/security.md) - secrets management, YubiKey, key rotation
+- [Storage](docs/storage.md) - disks, ZFS pools, encryption and the unlock chain, recovery

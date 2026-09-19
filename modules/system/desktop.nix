@@ -1,17 +1,14 @@
 { config, pkgs, lib, ... }: {
   hardware.i2c.enable = true;  # DDC/CI brightness control via ddcutil
 
-  # System side of the sway session only: PAM for swaylock, polkit, XWayland,
-  # and the wlr + gtk portals. The sway binary itself comes from home-manager
-  # (wayland.windowManager.sway.package), which is the one the session runs -
-  # it is first on PATH - so a second copy here was dead weight.
+  # The sway session: the compositor (GTK wrapper on by default), PAM for
+  # swaylock, polkit, XWayland, dconf, and the wlr + gtk portals. The sway
+  # config itself lives in the user's dotfiles.
   programs.sway = {
-    enable  = true;
-    package = null;
-    # Empty on purpose: the upstream default (swaylock, swayidle, foot, wmenu,
-    # ...) would duplicate what home-manager's programs.swaylock and
-    # services.swayidle already install.
-    extraPackages = [ ];
+    enable = true;
+    # Replaces the upstream default (foot, wmenu, brightnessctl, ...), which
+    # this session does not use; grim is in systemPackages below.
+    extraPackages = with pkgs; [ swaylock swayidle ];
   };
 
   xdg.portal = {
@@ -52,6 +49,10 @@
 
   fonts.packages = with pkgs; [
     nerd-fonts.jetbrains-mono
+    nerd-fonts.fira-mono
+    nerd-fonts.iosevka
+    nerd-fonts.meslo-lg
+    commit-mono
     noto-fonts
     noto-fonts-color-emoji
   ];
@@ -62,6 +63,11 @@
     monospace  = [ "JetBrainsMono Nerd Font" ];
     emoji      = [ "Noto Color Emoji" ];
   };
+
+  # The system profile only links the directories in environment.pathsToLink,
+  # and /libexec is not among them. polkit-gnome's authentication agent lives
+  # there, so the user's polkit agent unit dies with 203/EXEC without this.
+  environment.pathsToLink = [ "/libexec" ];
 
   services.udisks2.enable = true;
 
@@ -91,9 +97,44 @@
     });
   '';
 
+  # Accessibility bus for GTK apps; without it they log "Couldn't connect to
+  # accessibility bus" and pause at startup waiting for it.
+  services.gnome.at-spi2-core.enable = true;
+
+  programs.firefox.enable = true;
+
   environment.systemPackages = with pkgs; [
     grim slurp
     apfs-fuse   # read encrypted/macOS APFS disks (FUSE, read-only, prompts for password)
+
+    # session components, started from the user's sway config
+    waybar
+    swaynotificationcenter
+    wofi
+    ghostty
+    autotiling
+    swayr
+    cliphist
+    wl-clipboard
+    wl-clip-persist
+    wlsunset
+    udiskie
+    networkmanagerapplet
+    polkit_gnome   # agent binary is libexec/polkit-gnome-authentication-agent-1
+    satty
+    wf-recorder
+    ddcutil
+    xdg-user-dirs
+
+    # GTK theme, icons and cursor; selected by the user's GTK settings.
+    # Community Catppuccin theme (Fausto-Korpsvart); the official catppuccin/gtk
+    # port was archived upstream in June 2024.
+    (magnetic-catppuccin-gtk.override {
+      accent = [ "blue" ];
+      shade  = "dark";
+    })
+    papirus-icon-theme
+    catppuccin-cursors.mochaDark
   ];
 
   environment.sessionVariables = {
