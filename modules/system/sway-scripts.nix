@@ -13,6 +13,13 @@ let
   } (lib.replaceStrings [ "@notify_send@" ] [ "${pkgs.libnotify}/bin/notify-send" ]
       (builtins.readFile ./window-snap.py));
 
+  # Searchable key binding help ($mod+/); behaviour is documented in key-help.py.
+  keyHelp = pkgs.writers.writePython3Bin "key-help" {
+    flakeIgnore = [ "E501" ];
+  } (lib.replaceStrings [ "@swaymsg@" "@wofi@" ]
+      [ "${pkgs.sway}/bin/swaymsg" "${pkgs.wofi}/bin/wofi" ]
+      (builtins.readFile ./key-help.py));
+
   scratchpadPick = pkgs.writeShellScriptBin "scratchpad-pick" ''
     selected=$(${pkgs.sway}/bin/swaymsg -t get_tree | ${pkgs.jq}/bin/jq -r '
       [recurse(.nodes[]?, .floating_nodes[]?) |
@@ -77,6 +84,7 @@ in
 {
   environment.systemPackages = [
     windowSnap
+    keyHelp
     scratchpadPick
     powerMenu
     screenRec
