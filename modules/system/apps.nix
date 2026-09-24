@@ -14,5 +14,6 @@
     vscode
     jetbrains.idea
     bitwarden-desktop
+    bitwarden-cli
   ];
 }
