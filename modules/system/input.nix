@@ -1,8 +1,4 @@
 { pkgs, ... }: {
-  # Logitech mouse/keyboard management: udev rules, ltunify, and solaar
-  # (enableGraphical). nixos-26.05 has no programs.solaar module yet (it is
-  # unstable-only); once it does, programs.solaar.enable with
-  # userService.enable replaces both this and the unit below.
   # solaar's two desktop-notification tests fail in the build sandbox since
   # glib 2.88: libnotify needs a D-Bus session, and glib refuses to spawn one
   # without a machine-id ("Cannot spawn a message bus without a machine-id").
@@ -19,6 +15,10 @@
     })
   ];
 
+  # Logitech mouse/keyboard management: udev rules, ltunify, and solaar
+  # (enableGraphical). nixos-26.05 has no programs.solaar module yet (it is
+  # unstable-only); once it does, programs.solaar.enable with
+  # userService.enable replaces both this and the unit below.
   hardware.logitech.wireless = {
     enable          = true;
     enableGraphical = true;
