@@ -8,7 +8,7 @@
     git-lfs
 
     # shell tools
-    chezmoi    # dotfiles manager; source: ~/src/vovinacci/dotfiles
+    chezmoi    # dotfiles manager
     gnumake
     shellcheck
     shfmt
