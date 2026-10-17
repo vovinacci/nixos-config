@@ -100,6 +100,11 @@ sudo systemd-cryptenroll --unlock-fido2-device=auto \
 
 - Scrub and TRIM run from timers (`services.zfs.autoScrub`, `services.zfs.trim`).
   `zpool status` shows the last scrub.
+- `smartd` watches all three disks and runs drive self-tests: short daily at
+  12:00, long on the 15th at 13:00 (a test missed while the machine was off runs
+  after the next boot). Problems appear as desktop notifications and on `wall`.
+  State and attribute history: `/var/log/smartd/`. Check by hand:
+  `sudo smartctl -H /dev/sda`, `sudo smartctl -l selftest /dev/nvme1`.
 - ARC is capped at 16 GiB (`zfs.zfs_arc_max` in `disks.nix`).
 - The kernel is the LTS series because ZFS is an out-of-tree module; see the
   comment on `boot.kernelPackages` in `hosts/darkhero/default.nix` before

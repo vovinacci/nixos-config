@@ -29,6 +29,26 @@
   services.zfs.autoScrub.enable = true;
   services.zfs.trim.enable = true;
 
+  # Disk health for all three disks (autodetected). Every pool is a single
+  # disk, so a failing drive has to be noticed before ZFS loses data.
+  # Self-tests run in the drive's firmware: short daily at 12:00, long on the
+  # 15th at 13:00 - about 16 h on the 10 TB disk, kept off the 1st, when the
+  # monthly scrub loads the same disk. State files in /var/log/smartd (persisted)
+  # let smartd run a test that fell into downtime after the next boot.
+  # Problems go to wall and, via systembus-notify, to desktop notifications.
+  # The module wires notifications up only when wall, mail or x11 is on, so
+  # wall stays enabled.
+  services.smartd = {
+    enable = true;
+    extraOptions = [ "--savestates=/var/log/smartd/" "--attributelog=/var/log/smartd/" ];
+    defaults.autodetected = "-a -s (S/../.././12|L/../15/./13)";
+    notifications = {
+      wall.enable = true;
+      systembus-notify.enable = true;
+    };
+  };
+  systemd.services.smartd.serviceConfig.LogsDirectory = "smartd";
+
   # ARC defaults to half of RAM (~46 GB here). It does shrink under memory
   # pressure, but slowly enough to fight games and builds for memory.
   boot.kernelParams = [ "zfs.zfs_arc_max=${toString (16 * 1024 * 1024 * 1024)}" ];
