@@ -6,14 +6,14 @@ does not automate.
 
 ## Layout
 
-| disk (by-id)                            | partition label     | size   | content                              |
+| disk                                    | partition label     | size   | content                              |
 |-----------------------------------------|---------------------|--------|--------------------------------------|
-| `nvme-WDS100T1X0E-00AFY0_211417440503`  | `darkhero-esp`      | 2 GiB  | vfat, `/boot/efi`                    |
+| `WDS100T1X0E` 1 TB NVMe                 | `darkhero-esp`      | 2 GiB  | vfat, `/boot/efi`                    |
 |                                         | `darkhero-keystore` | 64 MiB | LUKS2, ext4 holding the ZFS key files |
 |                                         | `darkhero-swap`     | 16 GiB | swap, new random key every boot      |
 |                                         | `darkhero-rpool`    | rest   | ZFS pool `rpool`                     |
-| `ata-WDC_WD101EFBX-68B0AN0_VCJW40YP`    | `darkhero-tank`     | whole  | ZFS pool `tank`, one vdev            |
-| `nvme-WDS200T1X0E-00AFY0_21383Q802934`  | -                   | 2 TB   | Windows, see [Operations](operations.md#dual-boot-with-windows) |
+| `WD101EFBX` 10 TB SATA                  | `darkhero-tank`     | whole  | ZFS pool `tank`, one vdev            |
+| `WDS200T1X0E` 2 TB NVMe                 | -                   | 2 TB   | Windows, see [Operations](operations.md#dual-boot-with-windows) |
 
 | dataset              | mount                  | notes                                      |
 |----------------------|------------------------|--------------------------------------------|

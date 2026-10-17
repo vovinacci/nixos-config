@@ -4,12 +4,12 @@
 # does not change when the disks are re-created. docs/storage.md describes the
 # layout and the operations around it; keep the two in sync.
 #
-#   nvme-WDS100T1X0E-00AFY0_211417440503 (1 TB, system)
+#   WDS100T1X0E, 1 TB NVMe (system)
 #     darkhero-esp       2 GiB  vfat   /boot/efi
 #     darkhero-keystore 64 MiB  LUKS2  ZFS keys; TPM2 / FIDO2 / recovery key
 #     darkhero-swap     16 GiB  swap   random key every boot
 #     darkhero-rpool    rest    ZFS    rpool
-#   ata-WDC_WD101EFBX-68B0AN0_VCJW40YP (10 TB, data)
+#   WD101EFBX, 10 TB SATA (data)
 #     darkhero-tank     whole  ZFS    tank, one vdev
 {
   boot.supportedFilesystems = [ "zfs" ];
