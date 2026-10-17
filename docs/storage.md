@@ -39,13 +39,9 @@ does not automate.
 3. In stage 2, importing `tank` loads `tank/crypt` from
    `file:///run/zfs-keys/tank.key`.
 
-Secrets to keep outside this machine, in Bitwarden: `rpool-home.key` and
-`tank.key` (64 hex characters each), and the keystore recovery key - also on
-paper. With a single YubiKey, the recovery key is the last way in if the TPM
-stops unlocking and the YubiKey is unavailable at the same time.
-
-Secure Boot is off, so the TPM releases the key to anything that boots on this
-machine with the same PCR 7. See [Security](security.md#secure-boot).
+Keep off this machine: `rpool-home.key` and `tank.key` (64 hex characters each),
+and the keystore recovery key - the last way in when neither the TPM nor the
+YubiKey unlocks.
 
 ## Keystore
 
@@ -85,9 +81,9 @@ sudo systemd-cryptenroll --unlock-fido2-device=auto \
 ## Recovery
 
 - **Boot fails after a rebuild:** pick the previous generation in systemd-boot.
-- **`/home` does not mount:** the emergency shell asks for the root password
-  (same as the user's). Run `zfs load-key rpool/safe/home`, paste the hex key
-  from Bitwarden, then `systemctl default`.
+- **`/home` does not mount:** the emergency shell asks for the root password.
+  Run `zfs load-key rpool/safe/home`, paste the hex key from its off-machine
+  copy, then `systemctl default`.
 - **The initrd fails** (rpool import, keystore): in systemd-boot press `e` on
   the entry and append `rd.systemd.debug_shell` for a root shell on tty9. A
   pool that refuses to import because it was not exported cleanly can be

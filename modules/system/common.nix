@@ -120,7 +120,7 @@
     enable = true;
     settings.PasswordAuthentication = false;
     # ed25519 only. The default list also has RSA, whose key is not persisted
-    # on the tmpfs root and so was regenerated on every boot.
+    # on the tmpfs root and would be regenerated on every boot.
     hostKeys = [
       { type = "ed25519"; path = "/etc/ssh/ssh_host_ed25519_key"; }
     ];

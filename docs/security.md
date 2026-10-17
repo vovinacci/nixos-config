@@ -191,9 +191,7 @@ identity. The host key and user key allow re-encryption without the YubiKey.
 
 ## Secure Boot
 
-Secure Boot is **disabled**. The keystore's TPM2 token is bound to PCR 7, which
-without Secure Boot is the same for anything that boots on this machine; see
-[Storage](storage.md) for the unlock chain.
+Secure Boot is **disabled**. See [Storage](storage.md) for the unlock chain.
 
 ### Hardening Options
 

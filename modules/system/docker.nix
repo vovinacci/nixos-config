@@ -1,8 +1,8 @@
 { config, pkgs, ... }: {
   virtualisation.docker = {
     enable = true;
-    # Socket-activated on first use instead of started at boot, which kept
-    # NetworkManager-wait-online on the boot critical path.
+    # Socket-activated on first use rather than started at boot: starting at
+    # boot puts NetworkManager-wait-online on the boot critical path.
     enableOnBoot = false;
     autoPrune = {
       enable = true;

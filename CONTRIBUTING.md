@@ -97,8 +97,8 @@ fixes it*, and *when it can be removed*. Existing examples to follow:
 - `modules/system/input.nix` - solaar user service ported from unstable's
   `programs.solaar`, which nixos-26.05 lacks
 
-Local policy (the udisks polkit rule and FUSE `allow_other` in
-`modules/system/desktop.nix`) is not a workaround - it has no upstream defect
+Local policy (the udisks polkit rule in `modules/system/desktop.nix`) is not a
+workaround - it has no upstream defect
 to wait out - but still carries a comment saying why it exists.
 
 **Never delete a commented workaround because it looks obsolete.** Verify upstream

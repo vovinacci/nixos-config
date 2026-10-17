@@ -83,7 +83,7 @@
   # has run. If it fails, /home does not mount and the boot drops to the
   # emergency shell (root login, see profiles/workstation.nix), where
   # `zfs load-key rpool/safe/home` prompts for the hex key
-  # (keylocation=prompt on the dataset; the key is in Bitwarden).
+  # (keylocation=prompt on the dataset; the key is kept off this machine).
   boot.initrd.systemd.services.zfs-load-keys = {
     description = "Load ZFS encryption keys from the LUKS keystore";
     wantedBy = [ "initrd.target" ];
