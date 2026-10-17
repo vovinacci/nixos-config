@@ -137,6 +137,10 @@
     mise
     usage
 
+    # Edge for Playwright's msedge channel; other browsers come from Playwright
+    # itself (via mise), Firefox from programs.firefox.
+    microsoft-edge
+
     # neovim language servers; nvim-lspconfig finds them on PATH
     lua-language-server
     nil
@@ -151,4 +155,12 @@
 
   # Installs direnv with nix-direnv and the zsh hook.
   programs.direnv.enable = true;
+
+  # Playwright's msedge channel launches a fixed path,
+  # /opt/microsoft/msedge/msedge, and `playwright install msedge` needs a
+  # .deb package manager. Point that path at the nixpkgs wrapper, which sets
+  # the library path the raw binary needs. /opt is on the tmpfs root, so
+  # tmpfiles recreates it every boot.
+  systemd.tmpfiles.settings."10-msedge"."/opt/microsoft/msedge/msedge"."L+".argument =
+    "${pkgs.microsoft-edge}/bin/microsoft-edge-stable";
 }
