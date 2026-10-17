@@ -60,6 +60,7 @@ nh os build-vm
 
 - [Agent Instructions](AGENTS.md) - how automated agents must work in this repo
 - [Contributing](CONTRIBUTING.md) - making changes, testing, commit conventions
+- [Cheat Sheet](docs/cheatsheet.md) - everyday commands
 - [Operations](docs/operations.md) - updates, rollbacks, adding hosts, test VMs
 - [Security](docs/security.md) - secrets management, YubiKey, key rotation
 - [Storage](docs/storage.md) - disks, ZFS pools, encryption and the unlock chain, recovery
