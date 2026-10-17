@@ -192,24 +192,22 @@ identity. The host key and user key allow re-encryption without the YubiKey.
 ## Secure Boot
 
 Secure Boot is **disabled**. The keystore's TPM2 token is bound to PCR 7, which
-without Secure Boot measures nothing an attacker has to change: anything that
-boots on this machine, a live USB included, gets the same PCR 7 and the TPM
-releases the key. Until Secure Boot is on, TPM2 unlocking protects the data only
-when the disk is taken out of this machine. See [Storage](storage.md) for the
-unlock chain.
+without Secure Boot is the same for anything that boots on this machine; see
+[Storage](storage.md) for the unlock chain.
 
-Enabling it, with lanzaboote:
+### Hardening Options
 
-1. Add the lanzaboote flake input, replace `boot.loader.systemd-boot` with
-   `boot.lanzaboote`, and set `boot.lanzaboote.pkiBundle =
-   "/persist/var/lib/sbctl"` (`/var/lib` is tmpfs). Create the keys there with
-   `sbctl create-keys`.
-2. Turn off kernel command-line editing in the boot menu (the lanzaboote
-   equivalent of `boot.loader.systemd-boot.editor = false`). With editing on,
-   anyone at the console can append `init=/bin/sh` and get a shell after the
-   TPM has already unlocked the keystore. Editing stays on until then because
-   it is the way into the initrd debug shell ([Storage](storage.md#recovery)).
-3. Firmware: Secure Boot to setup mode, then `sbctl enroll-keys --microsoft`
-   (the Microsoft keys keep Windows booting).
-4. Enabling Secure Boot changes PCR 7, so the first boot falls back to the
-   YubiKey. Re-enroll the TPM ([Storage](storage.md#keystore)).
+Two options, in increasing cost:
+
+- **TPM2 with a PIN:** `systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto
+  --tpm2-pcrs=7 --tpm2-with-pin=yes` on the keystore. A PIN at every boot; the
+  TPM's dictionary-attack lockout keeps a short PIN safe. No configuration change.
+- **Secure Boot with lanzaboote:** signed boot chain, keys in
+  `/persist/var/lib/sbctl` (`/var/lib` is tmpfs), enrolled with
+  `sbctl enroll-keys --microsoft` - the Microsoft keys are required for the GPU
+  option ROM and Windows. The firmware is already in setup mode. lanzaboote
+  does not install `boot.loader.systemd-boot.windows` entries, so Windows would
+  move to the firmware boot menu. With Secure Boot on, lanzaboote's stub ignores
+  kernel command-line edits, so recovery means turning Secure Boot off in the
+  firmware, after which the YubiKey or recovery key unlocks. Enabling it changes
+  PCR 7: re-enroll the TPM ([Storage](storage.md#keystore)).
