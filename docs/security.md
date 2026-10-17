@@ -15,15 +15,17 @@ All three keys are stored as age public keys in `.sops.yaml`. Any of the three
 corresponding private keys can decrypt any file matching `secrets/*.sops.yaml`.
 
 **System secrets** (decrypted by sops-nix at boot) land in `/run/secrets/<name>`.
-User-level secrets are not consumed by this repo: user configuration lives in the
-user's own dotfiles, which decrypt what they need with the user age key.
+User secrets - git identity, local zsh config, SSH keys - are not in this
+repository: they live, SOPS-encrypted to the same three recipients, in the user's
+dotfiles repository, which restores them itself. Every key rotation below has to
+be repeated there: the same `.sops.yaml` change, then
+`sops updatekeys secrets/*.sops.yaml` in that repository.
 
 ### Current Secret Files
 
-| File                        | Contents                                                  |
-|-----------------------------|-----------------------------------------------------------|
-| `secrets/secrets.sops.yaml` | `user_password_hash` (used here); `git_user_config`, `zsh_local` (unused here, see above) |
-| `secrets/ssh.sops.yaml`     | `ssh_bundle` - shell script deploying SSH keys and config (unused here, see above) |
+| File                        | Contents                                         |
+|-----------------------------|--------------------------------------------------|
+| `secrets/secrets.sops.yaml` | `user_password_hash` - login and root password   |
 
 ---
 
@@ -33,7 +35,6 @@ Open a secret file for editing (requires YubiKey touch; PIN is cached per sessio
 
 ```shell
 sops secrets/secrets.sops.yaml
-sops secrets/ssh.sops.yaml
 ```
 
 SOPS decrypts to a temp file, opens `$EDITOR`, then re-encrypts on save.
@@ -105,7 +106,6 @@ YubiKey.
 3. Re-encrypt all secret files:
    ```shell
    sops updatekeys secrets/secrets.sops.yaml
-   sops updatekeys secrets/ssh.sops.yaml
    ```
 
 4. Commit the updated `.sops.yaml` and `secrets/*.sops.yaml`.
@@ -134,7 +134,6 @@ YubiKey.
 4. Re-encrypt:
    ```shell
    sops updatekeys secrets/secrets.sops.yaml
-   sops updatekeys secrets/ssh.sops.yaml
    ```
 
 5. Commit the updated files.
@@ -155,7 +154,6 @@ YubiKey.
 4. Re-encrypt:
    ```shell
    sops updatekeys secrets/secrets.sops.yaml
-   sops updatekeys secrets/ssh.sops.yaml
    ```
 
 5. Remove the old private key from `~/.config/sops/age/keys.txt`.
@@ -185,7 +183,6 @@ identity. The host key and user key allow re-encryption without the YubiKey.
 4. Re-encrypt all secret files:
    ```shell
    sops updatekeys secrets/secrets.sops.yaml
-   sops updatekeys secrets/ssh.sops.yaml
    ```
 
 5. Commit the updated `.sops.yaml` and `secrets/*.sops.yaml`.

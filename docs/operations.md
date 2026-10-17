@@ -147,7 +147,6 @@ Re-encrypt all secret files so the new host key is included:
 
 ```shell
 sops updatekeys secrets/secrets.sops.yaml
-sops updatekeys secrets/ssh.sops.yaml
 ```
 
 Commit the updated `.sops.yaml` and `secrets/*.sops.yaml` files.

@@ -176,8 +176,9 @@ it there, then keep the commit body short or omit it.
 
 - **Plaintext secrets** of any kind - passwords, private keys, tokens, API keys.
   Encrypt with SOPS before committing. See [Security](docs/security.md).
-- **SSH private keys** - the `ssh_bundle` secret in `secrets/ssh.sops.yaml` holds
-  them encrypted; deploying them is the user's dotfiles' job, not this repo's.
+- **User secrets** - SSH keys, git identity and other user configuration belong
+  in the user's dotfiles repository, encrypted there; this repository only holds
+  secrets the system itself consumes.
 - **Personal data** - avoid embedding identifiable information (e.g. device names,
   email addresses) in config files. Keep such details in SOPS secrets where possible.
 - **Unencrypted `.yaml` files** under `secrets/` - the `.gitignore` blocks `*.yaml`
