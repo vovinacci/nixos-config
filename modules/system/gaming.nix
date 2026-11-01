@@ -21,6 +21,9 @@
     vcmi
     wesnoth
 
+    # artillery; from the scorch flake input via overlay (flake.nix)
+    scorch
+
     # GOG / Epic launcher
     heroic
     lutris

@@ -27,6 +27,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    scorch = {
+      url = "github:vovinacci/scorch-game";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     sops-nix = {
       url = "github:mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -44,6 +49,7 @@
     impermanence,
     nix-ai-tools,
     nix-index-database,
+    scorch,
     sops-nix,
     xremap,
     ...
@@ -61,6 +67,8 @@
             nixpkgs.overlays = [
               (final: prev: {
                 ai-tools = nix-ai-tools.packages.${prev.stdenv.hostPlatform.system};
+                # Own flake, not nixpkgs; installed by modules/system/gaming.nix.
+                scorch = scorch.packages.${prev.stdenv.hostPlatform.system}.default;
               })
             ];
           }
