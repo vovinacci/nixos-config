@@ -14,13 +14,11 @@
 
     # AI coding CLIs release far faster than nixpkgs; this flake tracks them
     # daily and carries packages nixpkgs lacks (cursor-agent, antigravity-cli).
-    # Its packages expect unstable, so it follows nixpkgs-unstable, not the
-    # system's nixpkgs.
-    nix-ai-tools = {
-      url = "github:numtide/nix-ai-tools";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # Deliberately no nixpkgs `follows`: its packages are built and tested
+    # against the nixpkgs revision in its own lock. Following a separately
+    # bumped nixpkgs breaks them when a dependency changes underneath (codex
+    # lost aws-lc's openssl.pc that way).
+    nix-ai-tools.url = "github:numtide/nix-ai-tools";
 
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
