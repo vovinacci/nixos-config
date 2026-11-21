@@ -39,6 +39,7 @@
     mediainfo
     glow
     ouch
+    trash-cli    # restore.yazi reads the freedesktop trash through it
   ];
 
   # The system profile links only the directories in environment.pathsToLink.
