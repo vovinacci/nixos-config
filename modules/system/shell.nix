@@ -27,6 +27,14 @@
     difftastic   # structural diff, on demand
     tmux
 
+    # Plain package, not programs.yazi: that module always passes a settings
+    # submodule ({ yazi = {}; theme = {}; ... }), which fails the wrapper's
+    # `settings == { }` test, so yazi gets YAZI_CONFIG_HOME pointing at an
+    # empty store directory and ignores ~/.config/yazi. pkgs.yazi with default
+    # arguments sets no YAZI_CONFIG_HOME and still carries its optional deps
+    # (fd, rg, fzf, zoxide, poppler, 7zz, ffmpeg, resvg, chafa) on its PATH.
+    yazi
+
     # yazi previewer / action plugin runtime deps
     mediainfo
     glow
@@ -44,10 +52,6 @@
     "/share/fzf-tab"
     "/share/zsh-syntax-highlighting"
   ];
-
-  # Package only: an empty settings/plugins set leaves YAZI_CONFIG_HOME unset,
-  # so yazi reads ~/.config/yazi.
-  programs.yazi.enable = true;
 
   # gpg-agent is the SSH agent (YubiKey): user sockets for gpg-agent and its
   # ssh emulation, SSH_AUTH_SOCK, and pinentry-program in /etc/gnupg.

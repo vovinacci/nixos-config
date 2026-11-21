@@ -48,7 +48,7 @@ grep for it across `modules/` and check whether an option already provides it:
 - `services.blueman.enable` installs `blueman`
 - `hardware.logitech.wireless.enableGraphical` installs `solaar`
 - `programs.sway.extraPackages` installs `swaylock` and `swayidle`
-- `programs.firefox`, `programs.yazi`, `programs.neovim`, `programs.git`,
+- `programs.firefox`, `programs.yazi` (not used: see `shell.nix`), `programs.neovim`, `programs.git`,
   `programs.direnv` and `programs.gnupg.agent` each install their own package
 
 ### New Module vs Extending Existing
