@@ -2,7 +2,8 @@
   environment.systemPackages = with pkgs; [
     spotify
     vlc
-    mpv
+    # mpris: waybar mpris module and media keys see mpv (VLC has it built in).
+    (mpv.override { scripts = [ mpvScripts.mpris ]; })
     imv
     ffmpeg
     yt-dlp
