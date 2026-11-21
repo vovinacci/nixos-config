@@ -2,6 +2,7 @@
   environment.systemPackages = with pkgs; [
     spotify
     vlc
+    mpv
     imv
     ffmpeg
     yt-dlp
